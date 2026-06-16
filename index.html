@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex-Fleet Omni-Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; }
+  body { -webkit-font-smoothing: antialiased; }
+  @keyframes cfCaret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  ::selection { background: #28E07B; color: #000; }
+</style>
+<script>
+// GENERATED from dc-runtime/src/*.ts — do not edit. Rebuild with `cd dc-runtime && bun run build`.
+"use strict";
+(() => {
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+
+  function getReact() {
+    const R = window.React;
+    if (!R) throw new Error("dc-runtime: window.React is not available yet");
+    return R;
+  }
+  function getReactDOM() {
+    const RD = window.ReactDOM;
+    if (!RD) throw new Error("dc-runtime: window.ReactDOM is not available yet");
+    return RD;
+  }
+  var h = ((...args) => getReact().createElement(...args));
+
+  function parseDcDocument(doc) {
+    const dc = doc.querySelector("x-dc");
+    if (!dc) return null;
+    const scriptEl = doc.querySelector("script[data-dc-script]");
+    const { props, preview } = parseDataProps(scriptEl?.getAttribute("data-props") ?? null);
+    return { template: dc.innerHTML, js: scriptEl ? scriptEl.textContent || "" : "", props, preview };
+  }
+  function parseDcText(src) {
+    const openMatch = /<x-dc(?:\s[^>]*)?>/.exec(src);
+    if (!openMatch) return null;
+    const close = src.lastIndexOf("</x-dc>");
+    if (close === -1 || close < openMatch.index) return null;
+    const template = src.slice(openMatch.index + openMatch[0].length, close);
+    const doc = new DOMParser().parseFromString(src, "text/html");
+    const scriptEl = doc.querySelector("script[data-dc-script]");
+    const { props, preview } = parseDataProps(scriptEl?.getAttribute("data-props") ?? null);
+    return { template, js: scriptEl ? scriptEl.textContent || "" : "", props, preview };
+  }
+  function parseDataProps(raw) {
+    if (!raw) return { props: null, preview: null };
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch { return { props: null, preview: null }; }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { props: null, preview: null };
+    const obj = parsed;
+    const preview = obj.$preview && typeof obj.$preview === "object" ? obj.$preview : null;
+    const rest = {};
+    for (const k of Object.keys(obj)) { if (k[0] !== "$") rest[k] = obj[k]; }
+    return { props: Object.keys(rest).length ? rest : null, preview };
+  }
+  function dcNameFromPath(pathname) {
+    let p = pathname || "";
+    try { p = decodeURIComponent(p); } catch {}
+    const base = p.split("/").pop() || "Root";
+    return base.replace(/\.dc\.html$/, "").replace(/\.html?$/, "") || "Root";
+  }
+
+  var BASE_CSS = `
+    .sc-placeholder{background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);border-radius:2px;box-sizing:border-box;overflow:hidden}
+    @keyframes sc-shine{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+    html.sc-dc-streaming .sc-placeholder,html.sc-dc-streaming .sc-interp.sc-missing{position:relative;background:color-mix(in srgb,currentColor 5%,transparent);border-color:transparent}
+    html.sc-dc-streaming .sc-placeholder::before,html.sc-dc-streaming .sc-interp.sc-missing::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(217,119,87,0) 25%,rgba(247,225,211,.95) 37%,rgba(217,119,87,0) 63%);background-size:400% 100%;animation:sc-shine 1.4s ease infinite}
+    html.sc-dc-streaming .sc-placeholder:nth-child(n+9 of .sc-placeholder)::before,html.sc-dc-streaming .sc-interp.sc-missing:nth-child(n+9 of .sc-interp.sc-missing)::before{animation:none;background:color-mix(in srgb,currentColor 8%,transparent)}
+    .sc-placeholder-error{padding:4px 8px;font:11px/1.4 ui-monospace,monospace;color:rgba(0,0,0,.7);word-break:break-word}
+    .sc-interp.sc-missing{display:inline-block;width:2em;height:1em;overflow:hidden;vertical-align:text-bottom;background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);border-radius:2px;box-sizing:border-box;color:transparent;user-select:none}
+    .sc-interp.sc-unresolved{font-family:ui-monospace,monospace;font-size:.85em;color:rgba(0,0,0,.5);background:rgba(0,0,0,.05);border-radius:3px;padding:0 3px}
+    .sc-host.sc-has-error{position:relative}
+    .sc-logic-error{position:absolute;top:8px;left:8px;z-index:2147483647;max-width:60ch;padding:6px 10px;background:#b00020;color:#fff;font:12px/1.4 ui-monospace,monospace;border-radius:4px;white-space:pre-wrap;pointer-events:none}
+    @media print{@page{margin:0.5cm}html,body{print-color-adjust:exact;-webkit-print-color-adjust:exact}section,article,figure,table{break-inside:avoid}*,*::before,*::after{animation-delay:-99s!important;animation-duration:.001s!important;animation-iteration-count:1!important;animation-fill-mode:both!important;animation-play-state:running!important;transition-duration:0s!important}}
+  `;
+  var FULL_PAGE_CSS = "html,body{height:100%;margin:0}#dc-root,#dc-root>.sc-host{height:100%}";
+
+  function rootNameForDocument(doc, loc) {
+    let bootPath = loc.pathname || "";
+    if (!/\.dc\.html?$/i.test(safeDecode(bootPath))) {
+      try { bootPath = new URL(doc.baseURI || "/").pathname; } catch {}
+    }
+    return dcNameFromPath(bootPath);
+  }
+  function safeDecode(s) { try { return decodeURIComponent(s); } catch { return s; } }
+
+  function boot(runtime, doc = document) {
+    const parsed = parseDcDocument(doc);
+    if (!parsed) return null;
+    const React = getReact();
+    const rootName = rootNameForDocument(doc, location);
+    runtime.markFetched(rootName);
+    runtime.adoptParsed(rootName, parsed);
+    fetch(location.href).then((res) => res.ok ? res.text() : "").then((t) => {
+      const raw = t ? parseDcText(t) : null;
+      if (raw?.template) runtime.updateHtml(rootName, raw.template);
+    }).catch(() => {});
+    const dc = doc.querySelector("x-dc");
+    const hostEl = doc.createElement("div");
+    hostEl.id = "dc-root";
+    dc.replaceWith(hostEl);
+    if (!parsed.preview) {
+      const s = doc.createElement("style");
+      s.textContent = FULL_PAGE_CSS;
+      doc.head.appendChild(s);
+    }
+    const Root = runtime.getDC(rootName);
+    const entry = runtime.registry.get(rootName);
+    function StandaloneRoot() {
+      const [, setTick] = React.useState(0);
+      React.useEffect(() => {
+        const sub = () => setTick((n) => n + 1);
+        entry.subs.add(sub);
+        return () => { entry.subs.delete(sub); };
+      }, []);
+      return h(Root, entry.propOverrides || null);
+    }
+    const ReactDOM = getReactDOM();
+    if (ReactDOM.createRoot) ReactDOM.createRoot(hostEl).render(h(StandaloneRoot));
+    else ReactDOM.render(h(StandaloneRoot), hostEl);
+    return rootName;
+  }
+
+  var IDENT_RE = /^[A-Za-z_$][A-Za-z0-9_$]*/;
+  var NUMBER_RE = /^-?\d+(\.\d+)?$/;
+  function resolve(vals, src) {
+    const expr = String(src).trim();
+    if (!expr) return void 0;
+    if (expr[0] === "(" && expr[expr.length - 1] === ")" && parensWrapWhole(expr)) return resolve(vals, expr.slice(1, -1));
+    const eq = findTopLevelEquality(expr);
+    if (eq) {
+      const lv = resolve(vals, expr.slice(0, eq.index));
+      const rv = resolve(vals, expr.slice(eq.index + eq.op.length));
+      switch (eq.op) { case "===": return lv === rv; case "!==": return lv !== rv; case "==": return lv == rv; default: return lv != rv; }
+    }
+    if (expr[0] === "!") return !resolve(vals, expr.slice(1));
+    if (expr === "true") return true;
+    if (expr === "false") return false;
+    if (expr === "null") return null;
+    if (expr === "undefined") return void 0;
+    if (NUMBER_RE.test(expr)) return Number(expr);
+    if (expr.length >= 2 && (expr[0] === '"' || expr[0] === "'") && expr[expr.length - 1] === expr[0]) return expr.slice(1, -1);
+    return resolvePath(vals, expr);
+  }
+  function parensWrapWhole(expr) {
+    let depth = 0;
+    for (let i = 0; i < expr.length - 1; i++) {
+      if (expr[i] === "(") depth++;
+      else if (expr[i] === ")") { depth--; if (depth === 0) return false; }
+    }
+    return true;
+  }
+  function findTopLevelEquality(expr) {
+    let depth = 0;
+    for (let i = 0; i < expr.length; i++) {
+      const c = expr[i];
+      if (c === "[" || c === "(") depth++;
+      else if (c === "]" || c === ")") depth--;
+      else if (depth === 0 && (c === "=" || c === "!") && expr[i + 1] === "=") {
+        if (i > 0 && (expr[i - 1] === "=" || expr[i - 1] === "!")) continue;
+        if (!expr.slice(0, i).trim()) continue;
+        const op = expr[i + 2] === "=" ? c + "==" : c + "=";
+        return { index: i, op };
+      }
+    }
+    return null;
+  }
+  function resolvePath(vals, expr) {
+    const head = expr.match(IDENT_RE);
+    if (!head) return void 0;
+    let cur = vals == null ? void 0 : vals[head[0]];
+    let i = head[0].length;
+    while (i < expr.length) {
+      if (expr[i] === ".") {
+        const m = expr.slice(i + 1).match(IDENT_RE) || expr.slice(i + 1).match(/^\d+/);
+        if (!m) return void 0;
+        cur = cur == null ? void 0 : cur[m[0]];
+        i += 1 + m[0].length;
+      } else if (expr[i] === "[") {
+        let depth = 1, j = i + 1;
+        while (j < expr.length && depth > 0) {
+          if (expr[j] === "[") depth++;
+          else if (expr[j] === "]") { depth--; if (depth === 0) break; }
+          j++;
+        }
+        if (depth !== 0) return void 0;
+        const key = resolve(vals, expr.slice(i + 1, j));
+        cur = cur == null ? void 0 : cur[key];
+        i = j + 1;
+      } else return void 0;
+    }
+    return cur;
+  }
+
+  var CAMEL_ATTR = "sc-camel-";
+  var RAW_WRAP = { select:"sc-raw-select",table:"sc-raw-table",tbody:"sc-raw-tbody",thead:"sc-raw-thead",tfoot:"sc-raw-tfoot",tr:"sc-raw-tr",td:"sc-raw-td",th:"sc-raw-th",caption:"sc-raw-caption" };
+  var RAW_UNWRAP = Object.fromEntries(Object.entries(RAW_WRAP).map(([k, v]) => [v, k]));
+  var EVENT_MAP = { onclick:"onClick",onchange:"onChange",oninput:"onInput",onsubmit:"onSubmit",onkeydown:"onKeyDown",onkeyup:"onKeyUp",onkeypress:"onKeyPress",onmousedown:"onMouseDown",onmouseup:"onMouseUp",onmouseenter:"onMouseEnter",onmouseleave:"onMouseLeave",onfocus:"onFocus",onblur:"onBlur",ondoubleclick:"onDoubleClick",oncontextmenu:"onContextMenu" };
+  var ATTRS = `(?:[^>"']|"[^"]*"|'[^']*')*`;
+  var IMPORT_SELF_CLOSE_RE = new RegExp("<(x-import|dc-import)(" + ATTRS + ")/>","gi");
+  var CAMEL_ATTR_RE = /(\s)([a-z]+[A-Z][A-Za-z0-9]*)(\s*=)/g;
+  function encodeCase(html) {
+    html = html.replace(IMPORT_SELF_CLOSE_RE, (_, t, a) => "<" + t + a + "></" + t + ">");
+    html = html.replace(/<helmet(\s|>)/gi, "<sc-helmet$1");
+    html = html.replace(/<\/helmet\s*>/gi, "</sc-helmet>");
+    html = html.replace(CAMEL_ATTR_RE, (_, sp, name, eq) => sp + CAMEL_ATTR + name.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + eq);
+    for (const [real, alias] of Object.entries(RAW_WRAP)) html = html.replace(new RegExp("(</?)" + real + "(?=[\\s>])","gi"), "$1" + alias);
+    return html;
+  }
+  function kebabToCamel(s) { return s.replace(/-([a-z])/g, (_, c) => c.toUpperCase()); }
+  function cssToObj(css) {
+    const o = {};
+    for (const decl of css.split(";")) {
+      const i = decl.indexOf(":");
+      if (i < 0) continue;
+      const prop = decl.slice(0, i).trim();
+      o[prop.startsWith("--") ? prop : kebabToCamel(prop)] = decl.slice(i + 1).trim();
+    }
+    return o;
+  }
+  function compileAttr(raw) {
+    const whole = raw.match(/^\s*\{\{([\s\S]+?)\}\}\s*$/);
+    if (whole) { const path = whole[1]; return (vals) => resolve(vals, path); }
+    if (raw.includes("{{")) { const parts = raw.split(/\{\{([\s\S]+?)\}\}/g); return (vals) => parts.map((s, i) => i & 1 ? resolve(vals, s) ?? "" : s).join(""); }
+    return () => raw;
+  }
+
+  var HOST_STYLE_PROPS = new Set(["position","left","right","top","bottom","inset","width","height","z-index","transform"]);
+  function hostPositionStyle(style) {
+    const all = typeof style === "string" ? cssToObj(style) : style != null && typeof style === "object" ? style : null;
+    if (!all) return void 0;
+    const out = {};
+    for (const [k, v] of Object.entries(all)) { const kebab = k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()); if (HOST_STYLE_PROPS.has(kebab)) out[k] = v; }
+    return Object.keys(out).length ? out : void 0;
+  }
+  function collectProps(node, isComponent, host) {
+    const propGetters = [], pseudoClasses = [];
+    let hintSize = null;
+    for (const { name, value } of [...node.attributes]) {
+      if (name === "sc-name" || name === "data-dc-tpl") continue;
+      let key = name;
+      if (key.startsWith(CAMEL_ATTR)) key = kebabToCamel(key.slice(CAMEL_ATTR.length));
+      if (key === "hint-size") { hintSize = value; continue; }
+      if (key.startsWith("style-")) { pseudoClasses.push(host.pseudoClass(key.slice(6), value)); continue; }
+      if (isComponent) { if (key.includes("-")) key = kebabToCamel(key); }
+      else { if (key === "class") key = "className"; else if (key === "for") key = "htmlFor"; else if (key.startsWith("on")) key = EVENT_MAP[key] || "on" + key[2].toUpperCase() + key.slice(3); }
+      propGetters.push([key, compileAttr(value)]);
+    }
+    return { propGetters, pseudoClasses, hintSize };
+  }
+  function compileTemplate(html, host) {
+    const tpl = document.createElement("template");
+    tpl.innerHTML = encodeCase(html);
+    let tplN = 0;
+    (function stamp(node) {
+      if (node.nodeType === Node.ELEMENT_NODE) node.setAttribute("data-dc-tpl", String(tplN++));
+      for (const c of node.childNodes) stamp(c);
+    })(tpl.content);
+    const builders = walkChildren(tpl.content, host);
+    const render = ((vals, ctx) => builders.map((b, i) => b(vals || {}, ctx, i)));
+    render.__annotated = tpl.innerHTML;
+    return render;
+  }
+  function walkChildren(node, host) { return [...node.childNodes].map((c) => walk(c, host)).filter((b) => b != null); }
+  function walk(node, host) {
+    if (node.nodeType === Node.TEXT_NODE) return walkText(node);
+    if (node.nodeType !== Node.ELEMENT_NODE) return null;
+    const el = node, tag = el.tagName.toLowerCase();
+    if (tag === "sc-for") return walkFor(el, host);
+    if (tag === "sc-if") return walkIf(el, host);
+    if (tag === "x-import") return walkXImport(el, host);
+    if (tag === "sc-helmet") return host.helmet(el);
+    if (tag === "dc-import") return walkComponent(el, host);
+    return walkElement(el, host);
+  }
+  var warnedHoles = new Set();
+  function warnUnresolved(ctx, what) {
+    const key = (ctx?.__name || "?") + "\0" + what;
+    if (warnedHoles.has(key)) return;
+    warnedHoles.add(key);
+    console.warn("[dc-runtime] " + (ctx?.__name || "template") + ": " + what);
+  }
+  function walkText(node) {
+    const txt = node.nodeValue ?? "";
+    if (!txt.includes("{{")) { if (!txt.trim() && !txt.includes(" ")) return null; return () => txt; }
+    const parts = txt.split(/\{\{([\s\S]+?)\}\}/g);
+    return (vals, ctx, key) => h(getReact().Fragment, { key }, ...parts.map((p, i) => {
+      if (!(i & 1)) return p;
+      const v = resolve(vals, p);
+      if (v === void 0) {
+        if (!ctx?.__streamingNow) { if (document.body?.hasAttribute("data-dc-editor-on")) return h("span", { key: i, className: "sc-interp sc-unresolved" }, "{{ " + p.trim() + " }}"); warnUnresolved(ctx, "{{ " + p.trim() + " }} never resolved — rendered as empty"); return null; }
+        return h("span", { key: i, className: "sc-interp sc-missing" }, p.trim());
+      }
+      if (getReact().isValidElement(v) || Array.isArray(v)) return h(getReact().Fragment, { key: i }, v);
+      if (v === null || typeof v === "boolean") return null;
+      return h("span", { key: i, className: "sc-interp" }, String(v));
+    }));
+  }
+  function walkFor(el, host) {
+    const listGet = compileAttr(el.getAttribute("list") || "");
+    const asName = el.getAttribute("as") || "item";
+    const hintN = parseInt(el.getAttribute("hint-placeholder-count") || "0", 10);
+    const kids = walkChildren(el, host);
+    const listSrc = el.getAttribute("list") || "";
+    return (vals, ctx, key) => {
+      let list = listGet(vals);
+      if (!Array.isArray(list)) {
+        if (!ctx?.__streamingNow) { if (list !== void 0 && list !== null) warnUnresolved(ctx, 'sc-for list="' + listSrc + '" is not an array (' + typeof list + ")"); list = []; }
+        else list = hintN > 0 ? Array(hintN).fill(void 0) : [];
+      }
+      return h(getReact().Fragment, { key }, list.map((item, i) => { const sub = { ...vals, [asName]: item, $index: i }; return h(getReact().Fragment, { key: i }, kids.map((b, j) => b(sub, ctx, j))); }));
+    };
+  }
+  function walkIf(el, host) {
+    const valGet = compileAttr(el.getAttribute("value") || "");
+    const hintRaw = el.getAttribute("hint-placeholder-val");
+    const hintGet = hintRaw != null ? compileAttr(hintRaw) : null;
+    const kids = walkChildren(el, host);
+    return (vals, ctx, key) => {
+      let v = valGet(vals);
+      if (v === void 0 && hintGet && ctx?.__streamingNow) v = hintGet(vals);
+      return v ? h(getReact().Fragment, { key }, kids.map((b, j) => b(vals, ctx, j))) : null;
+    };
+  }
+  function walkComponent(el, host) {
+    const name = el.getAttribute("name") || el.getAttribute("component") || "";
+    el.removeAttribute("name"); el.removeAttribute("component");
+    const tplId = el.getAttribute("data-dc-tpl");
+    const styleRaw = el.getAttribute("style"); el.removeAttribute("style");
+    const styleGet = styleRaw != null ? compileAttr(styleRaw) : null;
+    const { propGetters, hintSize } = collectProps(el, true, host);
+    const kids = walkChildren(el, host);
+    return (vals, ctx, key) => {
+      const props = { key, __hintSize: hintSize, __tplId: tplId, __hostStyle: styleGet ? hostPositionStyle(styleGet(vals)) : void 0 };
+      for (const [k, g] of propGetters) props[k] = g(vals);
+      if (kids.length) props.children = kids.map((b, j) => b(vals, ctx, j));
+      return h(host.component(name), props);
+    };
+  }
+  function walkXImport(el, host) {
+    const globalNameGet = compileAttr(el.getAttribute("component-from-global-scope") || "");
+    const exportNameGet = compileAttr(el.getAttribute("component") || el.getAttribute("name") || "");
+    const url = el.getAttribute("from") || el.getAttribute("src") || el.getAttribute("import") || "";
+    const kind = /\.(jsx|tsx)(\?|#|$)/i.test(url) ? "jsx" : "js";
+    const tplId = el.getAttribute("data-dc-tpl");
+    const styleRaw = el.getAttribute("style"); el.removeAttribute("style");
+    const styleGet = styleRaw != null ? compileAttr(styleRaw) : null;
+    const wrap = tplId != null || styleGet != null;
+    const { propGetters, hintSize } = collectProps(el, true, host);
+    const hasContent = el.children.length > 0 || !!(el.textContent || "").trim();
+    const kids = hasContent ? walkChildren(el, host) : [];
+    const urlBindable = url.includes("{{");
+    if (url && !urlBindable) host.loadExternal(kind, url);
+    const evalName = (g, vals) => { const v = g(vals); const s = v == null ? "" : String(v); return s.includes("{{") ? "" : s; };
+    return (vals, ctx, key) => {
+      const globalName = evalName(globalNameGet, vals);
+      const name = globalName || evalName(exportNameGet, vals);
+      const C = !name || urlBindable ? null : globalName ? host.resolveExternalGlobal(url, globalName) : host.resolveExternal(url, name);
+      const hostStyle = styleGet ? hostPositionStyle(styleGet(vals)) : void 0;
+      const wrapper = wrap ? { key, className: "sc-host-x", "data-dc-tpl": tplId, style: hostStyle || { display: "contents" } } : null;
+      if (!C) {
+        const error = urlBindable ? "x-import `from` cannot contain {{ … }} — module URLs are resolved at parse time; use a literal URL" : host.resolveExternalError(url, name);
+        const ph = host.placeholder({ key: wrapper ? void 0 : key, name, hintSize, error });
+        return wrapper ? h("div", wrapper, ph) : ph;
+      }
+      const props = wrapper ? {} : { key };
+      let unresolvedHole = false;
+      for (const [k, g] of propGetters) { if (["component","componentFromGlobalScope","name","from","src","import"].includes(k)) continue; const v = g(vals); if (v === void 0) unresolvedHole = true; props[k] = v; }
+      if (unresolvedHole && ctx?.__htmlStreamingNow) { const ph = host.placeholder({ key: wrapper ? void 0 : key, name, hintSize, error: null }); return wrapper ? h("div", wrapper, ph) : ph; }
+      if (kids.length) props.children = kids.map((b, j) => b(vals, ctx, j));
+      return wrapper ? h("div", wrapper, h(C, props)) : h(C, props);
+    };
+  }
+  function walkElement(el, host) {
+    const realTag = RAW_UNWRAP[el.localName] || el.localName;
+    const tplId = el.getAttribute("data-dc-tpl");
+    const { propGetters, pseudoClasses } = collectProps(el, false, host);
+    const kids = walkChildren(el, host);
+    return (vals, ctx, key) => {
+      const props = { key, "data-dc-tpl": tplId };
+      for (const [k, g] of propGetters) { let v = g(vals); if (k === "style" && typeof v === "string") v = cssToObj(v); if ((k === "value" || k === "checked") && v === void 0) v = k === "checked" ? false : ""; props[k] = v; }
+      if (pseudoClasses.length) props.className = [props.className, ...pseudoClasses].filter(Boolean).join(" ");
+      return h(realTag, props, ...kids.map((b, j) => b(vals, ctx, j)));
+    };
+  }
+
+  var StreamableLogic = class {
+    constructor(props) {
+      __publicField(this, "props");
+      __publicField(this, "state", {});
+      __publicField(this, "__host");
+      this.props = props || {};
+    }
+    setState(update, cb) { this.__host && this.__host.__setLogicState(update, cb); }
+    forceUpdate() { this.__host && this.__host.forceUpdate(); }
+    componentDidMount() {}
+    componentDidUpdate(_prevProps) {}
+    componentWillUnmount() {}
+    renderVals() { return {}; }
+  };
+  function evalDcLogic(src) {
+    const fn = new Function("DCLogic","StreamableLogic","React", src + '\n;return (typeof Component!=="undefined"&&Component)||undefined;');
+    return fn(StreamableLogic, StreamableLogic, getReact());
+  }
+
+  function shallowEqual(a, b) {
+    if (!b) return false;
+    const ak = Object.keys(a).filter((k) => k !== "children");
+    const bk = Object.keys(b).filter((k) => k !== "children");
+    if (ak.length !== bk.length) return false;
+    for (const k of ak) if (a[k] !== b[k]) return false;
+    return true;
+  }
+  function Placeholder({ name, hintSize, streaming, error }) {
+    const [w, hgt] = (hintSize || "100%,60px").split(",");
+    return h("div", { className: "sc-placeholder" + (streaming ? " sc-streaming" : ""), style: { width: w.trim(), height: hgt && hgt.trim() }, title: name }, error ? h("div", { className: "sc-placeholder-error" }, (name ? name + ": " : "") + error) : null);
+  }
+  function hintToMin(hint) { if (!hint) return void 0; const [w, hgt] = hint.split(","); return { minWidth: w.trim(), minHeight: hgt && hgt.trim() }; }
+
+  function createComponentFactory(registry, ensureFetched) {
+    const React = getReact();
+    const AncestorContext = React.createContext([]);
+    class StreamableComponent extends React.Component {
+      constructor(props) {
+        super(props);
+        __publicField(this, "__name");
+        __publicField(this, "__sub");
+        __publicField(this, "__needsDidMount", false);
+        __publicField(this, "__streamingNow", false);
+        __publicField(this, "__htmlStreamingNow", false);
+        __publicField(this, "__failedLogic", null);
+        __publicField(this, "__failedUserProps", null);
+        __publicField(this, "__failedVer", -1);
+        __publicField(this, "__ctorError", null);
+        __publicField(this, "logic");
+        this.__name = props.__name;
+        this.state = { __v: 0, __err: null };
+        this.__sub = () => { if (this.state.__err) this.setState({ __err: null }); this.forceUpdate(); };
+        this.__makeLogic(registry.get(this.__name).Logic, null);
+        ensureFetched(this.__name);
+      }
+      static getDerivedStateFromError(e) { return { __err: e instanceof Error && e.message ? e.message : String(e) }; }
+      componentDidCatch(e, info) { console.error("[dc-runtime] render error in <" + this.__name + ">:", e, info?.componentStack || ""); }
+      __makeLogic(Logic, prevState) {
+        const L = Logic || StreamableLogic;
+        try { this.logic = new L(this.__userProps()); this.__failedLogic = null; this.__failedUserProps = null; this.__ctorError = null; }
+        catch (e) { console.error(e); this.__failedLogic = Logic; this.__failedUserProps = this.__userProps(); this.__failedVer = registry.get(this.__name).ver; this.__ctorError = this.__name + ": " + (e instanceof Error && e.message ? e.message : String(e)); this.logic = new StreamableLogic(this.__userProps()); }
+        this.logic.__host = this;
+        if (prevState) this.logic.state = { ...this.logic.state || {}, ...prevState };
+      }
+      __userProps() { const { __name, __hintSize, __tplId, __hostStyle, ...rest } = this.props; return rest; }
+      __setLogicState(update, cb) { const prev = this.logic.state; const patch = typeof update === "function" ? update(prev) : update; this.logic.state = { ...prev, ...patch }; this.setState((s) => ({ __v: s.__v + 1 }), cb); }
+      __reconcileLogic() {
+        const r = registry.get(this.__name);
+        const Next = r.Logic, Cur = this.logic.constructor;
+        if (Next === Cur || !Next && Cur === StreamableLogic || Next === this.__failedLogic && r.ver === this.__failedVer && shallowEqual(this.__userProps(), this.__failedUserProps)) return;
+        if (!this.__needsDidMount) { try { this.logic.componentWillUnmount(); } catch (e) { console.error(e); } }
+        this.__makeLogic(Next, this.logic.state);
+        this.__needsDidMount = true;
+      }
+      componentDidMount() { registry.get(this.__name).subs.add(this.__sub); try { this.logic.componentDidMount(); } catch (e) { console.error(e); } }
+      componentDidUpdate(prevProps) {
+        this.logic.props = this.__userProps();
+        if (this.__needsDidMount) { if (this.state.__err || !registry.get(this.__name).tpl) return; this.__needsDidMount = false; try { this.logic.componentDidMount(); } catch (e) { console.error(e); } }
+        else { try { this.logic.componentDidUpdate(prevProps); } catch (e) { console.error(e); } }
+      }
+      componentWillUnmount() { registry.get(this.__name).subs.delete(this.__sub); if (!this.__needsDidMount) { try { this.logic.componentWillUnmount(); } catch (e) { console.error(e); } } }
+      render() {
+        const r = registry.get(this.__name);
+        const cls = "sc-host" + (r.htmlStreaming ? " sc-streaming-html" : "") + (r.jsStreaming ? " sc-streaming-js" : "");
+        const hintStyle = r.htmlStreaming ? hintToMin(this.props.__hintSize) : void 0;
+        const hostStyle = this.props.__hostStyle || hintStyle ? { ...hintStyle || {}, ...this.props.__hostStyle || {} } : void 0;
+        const hostBase = { className: cls, style: hostStyle, "data-sc-name": this.__name, "data-dc-tpl": this.props.__tplId };
+        const chain = Array.isArray(this.context) ? this.context : [];
+        if (chain.includes(this.__name)) { const cycle = [...chain.slice(chain.indexOf(this.__name)), this.__name].join(" → "); return h("div", { ...hostBase, className: cls + " sc-has-error" }, h(Placeholder, { name: this.__name, hintSize: this.props.__hintSize, error: "circular import: " + cycle })); }
+        if (this.state.__err) return h("div", { ...hostBase, className: cls + " sc-has-error" }, h("div", { className: "sc-logic-error" }, this.__name + ": " + this.state.__err), h(Placeholder, { name: this.__name, hintSize: this.props.__hintSize, error: this.state.__err }));
+        this.__reconcileLogic();
+        if (!r.tpl) return h("div", hostBase, h(Placeholder, { name: this.__name, hintSize: this.props.__hintSize }));
+        const userProps = this.__userProps();
+        this.logic.props = userProps;
+        let vals = userProps, renderErr = r.logicError || this.__ctorError;
+        try { vals = { ...userProps, ...this.logic.renderVals() || {} }; } catch (e) { console.error(e); renderErr = this.__name + ".renderVals(): " + (e instanceof Error && e.message ? e.message : String(e)); }
+        this.__streamingNow = !!(r.htmlStreaming || r.jsStreaming);
+        this.__htmlStreamingNow = !!r.htmlStreaming;
+        return h("div", { ...hostBase, className: cls + (renderErr ? " sc-has-error" : "") }, renderErr && h("div", { className: "sc-logic-error" }, renderErr), h(AncestorContext.Provider, { value: [...chain, this.__name] }, r.tpl(vals, this)));
+      }
+    }
+    __publicField(StreamableComponent, "contextType", AncestorContext);
+    const named = new Map();
+    function getDC(name) {
+      const hit = named.get(name);
+      if (hit) return hit;
+      function Dispatcher(p) {
+        const [, setTick] = React.useState(0);
+        React.useEffect(() => { const sub = () => setTick((n) => n + 1); registry.get(name).subs.add(sub); return () => { registry.get(name).subs.delete(sub); }; }, []);
+        ensureFetched(name);
+        return h(StreamableComponent, { ...p, __name: name });
+      }
+      Dispatcher.displayName = name;
+      named.set(name, Dispatcher);
+      return Dispatcher;
+    }
+    return { getDC, StreamableComponent };
+  }
+
+  var isCustomElementName = (n) => !n.includes(".") && n.includes("-");
+  function isRenderableType(g) { if (typeof g === "function") return !isElementClass(g); return typeof g === "object" && g !== null && typeof g.$$typeof === "symbol"; }
+  function resolveDottedPath(root, name) { let cur = root; for (const seg of name.split(".")) { if (cur == null) return void 0; cur = cur[seg]; } return cur; }
+  var BABEL_URL = "https://unpkg.com/@babel/standalone@7.26.4/babel.min.js";
+  var GLOBAL_POLL_INTERVAL_MS = 50, GLOBAL_POLL_TIMEOUT_MS = 3e4;
+  function createExternalModules(onResolved) {
+    const cache = new Map();
+    let babelLoading = null;
+    const reportedMissing = new Map(), polling = new Set();
+    function ensureBabel() {
+      if (window.Babel) return Promise.resolve();
+      if (babelLoading) return babelLoading;
+      babelLoading = new Promise((res, rej) => { const s = document.createElement("script"); s.src = BABEL_URL; s.crossOrigin = "anonymous"; s.onload = () => res(); s.onerror = rej; document.head.appendChild(s); });
+      return babelLoading;
+    }
+    function load(kind, url) {
+      if (cache.has(url)) return;
+      cache.set(url, null);
+      const ready = kind === "jsx" ? ensureBabel() : Promise.resolve();
+      ready.then(() => fetch(url)).then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }).then((src) => {
+        const code = kind === "jsx" ? window.Babel.transform(src, { filename: url, presets: ["react","typescript"] }).code : src;
+        const module = { exports: {} };
+        const before = new Set(Object.keys(window));
+        new Function("React","module","exports","require", code)(getReact(), module, module.exports, () => ({}));
+        const globals = {};
+        for (const k of Object.keys(window)) { if (!before.has(k) && typeof window[k] === "function") globals[k] = window[k]; }
+        cache.set(url, { mod: module.exports, globals });
+        onResolved();
+      }).catch((e) => { cache.set(url, { mod: {}, globals: {}, error: "failed to load: " + (e instanceof Error && e.message ? e.message : String(e)) }); onResolved(); });
+    }
+    function resolve2(url, name) {
+      const entry = cache.get(url);
+      if (!entry) return null;
+      const { mod, globals } = entry;
+      const C = mod && mod[name] || globals && globals[name] || typeof window !== "undefined" && window[name] || mod && mod.default;
+      if (typeof C === "function") return C;
+      const key = url + "\0" + name;
+      if (!reportedMissing.has(key)) { reportedMissing.set(key, entry.error || 'no export named "' + name + '"'); }
+      return null;
+    }
+    function waitForGlobal(name) {
+      if (polling.has(name)) return;
+      polling.add(name);
+      const started = Date.now(), isCE = isCustomElementName(name);
+      const tick = () => {
+        const found = isCE ? customElements.get(name) : isRenderableType(resolveDottedPath(window, name));
+        if (found) { polling.delete(name); onResolved(); return; }
+        if (Date.now() - started >= GLOBAL_POLL_TIMEOUT_MS) return;
+        setTimeout(tick, GLOBAL_POLL_INTERVAL_MS);
+      };
+      setTimeout(tick, GLOBAL_POLL_INTERVAL_MS);
+    }
+    function resolveGlobal(url, name) {
+      const isCE = isCustomElementName(name);
+      if (!url) { if (isCE) { if (customElements.get(name)) return name; waitForGlobal(name); return null; } const g2 = resolveDottedPath(window, name); if (isRenderableType(g2)) return g2; waitForGlobal(name); return null; }
+      const entry = cache.get(url);
+      if (!entry) return null;
+      if (isCE && customElements.get(name)) return name;
+      const g = entry.globals[name] ?? resolveDottedPath(window, name);
+      if (isRenderableType(g)) return g;
+      if (name.includes(".")) return null;
+      const key = url + "\0global\0" + name;
+      if (!reportedMissing.has(key)) reportedMissing.set(key, null);
+      return name;
+    }
+    function getError(url, name) { const entry = cache.get(url); if (entry?.error) return entry.error; return reportedMissing.get(url + "\0" + name) || null; }
+    return { load, resolve: resolve2, resolveGlobal, getError };
+  }
+  function isElementClass(g) { try { return typeof g === "function" && typeof HTMLElement !== "undefined" && g.prototype instanceof HTMLElement; } catch { return false; } }
+
+  function createHelmetManager(doc, isStreaming) {
+    const mounted = new Set(), live = new Map();
+    function compile(node) {
+      const raw = [...node.children];
+      const helmetClosed = node.nextSibling != null || node.parentNode?.nextSibling != null;
+      return (_vals, ctx) => {
+        const name = ctx && ctx.__name || "";
+        const streaming = !!(name && isStreaming(name));
+        for (let i = 0; i < raw.length; i++) {
+          const child = raw[i], tag = child.tagName;
+          const mayBePartial = streaming && !helmetClosed && i === raw.length - 1;
+          if (tag === "SCRIPT") { if (mayBePartial) continue; const key = "SCRIPT|" + (child.getAttribute("src") || child.textContent || ""); if (mounted.has(key)) continue; mounted.add(key); const el = doc.createElement("script"); for (const { name: an, value } of [...child.attributes]) el.setAttribute(an, value); if (child.textContent) el.textContent = child.textContent; doc.head.appendChild(el); }
+          else if (tag === "LINK" || tag === "META") { if (mayBePartial) continue; const key = tag + "|" + (child.getAttribute("href") || child.getAttribute("src") || child.outerHTML); if (mounted.has(key)) continue; mounted.add(key); doc.head.appendChild(child.cloneNode(true)); }
+          else { const key = name + "|" + i; let el = live.get(key); if (!el || el.tagName !== tag) { if (el) el.remove(); el = doc.createElement(tag.toLowerCase()); live.set(key, el); doc.head.appendChild(el); } for (const { name: an, value } of [...child.attributes]) { if (el.getAttribute(an) !== value) el.setAttribute(an, value); } if (el.textContent !== child.textContent) el.textContent = child.textContent; }
+        }
+        return null;
+      };
+    }
+    return { compile };
+  }
+
+  function createPseudoSheet(doc) {
+    let el = null;
+    const cache = new Map();
+    let n = 0;
+    return (pseudo, css) => {
+      const k = pseudo + "|" + css;
+      const hit = cache.get(k);
+      if (hit) return hit;
+      if (!el) { el = doc.createElement("style"); doc.head.appendChild(el); }
+      const cls = "scp" + (n++).toString(36);
+      const sel = pseudo === "before" || pseudo === "after" ? "." + cls + "::" + pseudo : "." + cls + ":" + pseudo;
+      el.sheet.insertRule(sel + "{" + css + "}", el.sheet.cssRules.length);
+      cache.set(k, cls);
+      return cls;
+    };
+  }
+
+  function createRegistry() {
+    const entries = Object.create(null);
+    function get(name) { return entries[name] || (entries[name] = { html:"",tpl:null,Logic:null,jsStreaming:false,htmlStreaming:false,ver:0,subs:new Set(),fetched:false }); }
+    function bump(name) { const r = get(name); r.ver++; for (const fn of r.subs) fn(); }
+    return { entries, get, bump, bumpAll() { for (const n in entries) bump(n); } };
+  }
+
+  var COMPONENT_DIR = ".";
+  function createRuntime(doc = document) {
+    const registry = createRegistry();
+    const pseudoClass = createPseudoSheet(doc);
+    const helmet = createHelmetManager(doc, (name) => registry.get(name).htmlStreaming);
+    const external = createExternalModules(() => registry.bumpAll());
+    const factory = createComponentFactory(registry, ensureFetched);
+    const host = { component: (name) => factory.getDC(name), placeholder: (props) => h(Placeholder, props), helmet: (node) => helmet.compile(node), loadExternal: (kind, url) => external.load(kind, url), resolveExternal: (url, name) => external.resolve(url, name), resolveExternalGlobal: (url, name) => external.resolveGlobal(url, name), resolveExternalError: (url, name) => external.getError(url, name), pseudoClass };
+    function ensureFetched(name) {
+      const r = registry.get(name);
+      if (r.fetched) return;
+      r.fetched = true;
+      const url = COMPONENT_DIR + "/" + encodeURIComponent(name) + ".dc.html";
+      fetch(url).then((res) => { if (!res.ok) { console.error("[dc-runtime] sibling fetch for <" + name + "/> failed:", url, "returned", res.status); return ""; } return res.text(); }).then((t) => {
+        if (!t) return;
+        const parsed = parseDcText(t);
+        if (!parsed) { console.error("[dc-runtime] sibling fetch for <" + name + "/>:", url, "has no <x-dc> block"); return; }
+        if (parsed.props) r.propsMeta = parsed.props;
+        if (parsed.preview) r.preview = parsed.preview;
+        if (parsed.template && !r.html) updateHtml(name, parsed.template);
+        if (parsed.js && !r.Logic) updateJs(name, parsed.js);
+      }).catch((e) => console.error("[dc-runtime] sibling fetch for <" + name + "/> threw:", url, e));
+    }
+    function updateHtml(name, html) { const r = registry.get(name); r.html = html; try { r.tpl = compileTemplate(html, host); } catch (e) { console.error("[dc-runtime] template compile FAILED for", name, e); } registry.bump(name); }
+    function updateJs(name, src) {
+      const r = registry.get(name);
+      const seq = r.jsSeq = (r.jsSeq || 0) + 1;
+      try { const Cls = evalDcLogic(src); if (r.jsSeq !== seq) return; if (typeof Cls !== "function") { r.logicError = name + ".dc.html: must define `class Component extends DCLogic`"; } else { r.logicError = null; r.Logic = Cls; } }
+      catch (e) { if (r.jsSeq !== seq) return; console.error("[dc-runtime] logic class eval FAILED for", name, e); r.logicError = name + ": " + (e instanceof Error && e.message ? e.message : String(e)); }
+      registry.bump(name);
+    }
+    function setStreaming(name, kind, on) { const r = registry.get(name); if (kind === "html") r.htmlStreaming = !!on; else r.jsStreaming = !!on; let any = false; for (const n in registry.entries) { const e = registry.entries[n]; if (e && (e.htmlStreaming || e.jsStreaming)) { any = true; break; } } doc.documentElement.classList.toggle("sc-dc-streaming", any); registry.bump(name); }
+    function dcUpdate(name, kind, content, streaming) {
+      if (streaming) registry.get(name).fetched = true;
+      if (kind === "html") { setStreaming(name, "html", !!streaming); updateHtml(name, content); }
+      else if (kind === "js") { setStreaming(name, "js", !!streaming); if (!streaming) updateJs(name, content); }
+      else if (kind === "props") { const { props, preview } = parseDataProps(content); const r = registry.get(name); r.propsMeta = props ?? void 0; r.preview = preview; registry.bump(name); }
+    }
+    function setProps(name, overrides) { registry.get(name).propOverrides = overrides && typeof overrides === "object" ? { ...overrides } : null; registry.bump(name); }
+    function adoptParsed(name, parsed) { if (!parsed) return; const r = registry.get(name); if (parsed.props) r.propsMeta = parsed.props; if (parsed.preview) r.preview = parsed.preview; if (parsed.template) updateHtml(name, parsed.template); if (parsed.js) updateJs(name, parsed.js); }
+    return { registry, getDC: factory.getDC, updateHtml, updateJs, dcUpdate, setProps, adoptParsed, markFetched: (name) => { registry.get(name).fetched = true; }, annotatedTemplate: (name) => { const r = registry.get(name); return r.tpl && r.tpl.__annotated || null; }, templateSource: (name) => registry.get(name).html || null, StreamableLogic };
+  }
+
+  var REACT_URL = "https://unpkg.com/react@18.3.1/umd/react.production.min.js";
+  var REACT_SRI = "sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z";
+  var REACT_DOM_URL = "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js";
+  var REACT_DOM_SRI = "sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1";
+  function hideRawTemplate() { const s = document.createElement("style"); s.textContent = "x-dc{display:none!important}"; document.head.appendChild(s); }
+  function loadScript(src, integrity) {
+    return new Promise((resolve2, reject) => {
+      const s = document.createElement("script");
+      s.src = src; s.integrity = integrity; s.crossOrigin = "anonymous"; s.async = false;
+      s.onload = () => resolve2();
+      s.onerror = () => reject(new Error(`failed to load ${src}`));
+      document.head.appendChild(s);
+    });
+  }
+  function loadReactUmd() { const w = window; if (w.React && w.ReactDOM) return Promise.resolve(); return Promise.all([loadScript(REACT_URL, REACT_SRI), loadScript(REACT_DOM_URL, REACT_DOM_SRI)]).then(() => void 0); }
+  function init() {
+    const runtime = createRuntime(document);
+    let rootName = "Root";
+    const baseCss = document.createElement("style");
+    baseCss.textContent = BASE_CSS;
+    document.head.prepend(baseCss);
+    const notifyHost = () => { if (window.parent === window) return; const r = runtime.registry.entries[rootName]; try { window.parent.postMessage({ type: "__dc_booted", rootName, propsMeta: r && r.propsMeta || null, preview: r && r.preview || null }, "*"); } catch {} };
+    const api = {
+      __dcUpdate: (name, kind, content, streaming) => { runtime.dcUpdate(name, kind, content, streaming); if (name === rootName && !streaming && kind === "props") notifyHost(); },
+      __dcSetProps: (name, overrides) => runtime.setProps(name, overrides),
+      __dcRootName: () => rootName,
+      __dcAnnotatedTemplate: (name) => runtime.annotatedTemplate(name),
+      __dcTemplateSource: (name) => runtime.templateSource(name),
+      __dcBoot: () => { rootName = boot(runtime, document) ?? rootName; notifyHost(); },
+      __dcRegistry: runtime.registry.entries,
+      getDC: (name) => runtime.getDC(name),
+      DCLogic: runtime.StreamableLogic,
+      StreamableLogic: runtime.StreamableLogic
+    };
+    Object.assign(window, api);
+    if (document.readyState !== "loading") api.__dcBoot();
+    else document.addEventListener("DOMContentLoaded", () => api.__dcBoot());
+  }
+  hideRawTemplate();
+  loadReactUmd().then(init).catch((err) => { console.error("[dc] failed to load React or boot:", err); throw err; });
+})();
+</script>
+</head>
+<body>
+<x-dc>
+
+<div style="position: relative; min-height: 100vh; width: 100%; background: #000000; color: #ECECEC; font-family: 'IBM Plex Mono', monospace; overflow: hidden; padding: clamp(14px, 2vw, 28px);">
+
+  <!-- FILM GRAIN -->
+  <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <filter id="cfNoise3"><feTurbulence type="fractalNoise" baseFrequency="0.86" numOctaves="2" stitchTiles="stitch" result="n"></feTurbulence><feColorMatrix in="n" type="saturate" values="0"></feColorMatrix></filter>
+  </svg>
+  <div style="position: fixed; inset: 0; z-index: 9; pointer-events: none; mix-blend-mode: screen; opacity: {{ grainOpacity }};">
+    <svg width="100%" height="100%" preserveAspectRatio="none"><rect width="100%" height="100%" filter="url(#cfNoise3)"></rect></svg>
+  </div>
+  <div style="position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: clamp(36px,4vw,60px) clamp(36px,4vw,60px);"></div>
+
+  <!-- TOP STRIP -->
+  <div style="position: relative; z-index: 3; display: flex; align-items: stretch; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); border-bottom: none;">
+    <div style="display: flex; align-items: center; gap: clamp(8px,0.9vw,14px); padding: clamp(8px,0.9vw,12px) clamp(12px,1.3vw,20px); border-right: 1px solid rgba(255,255,255,0.1);">
+      <svg width="14" height="14" viewBox="0 0 14 14"><rect x="0.5" y="0.5" width="13" height="13" fill="none" stroke="{{ statusColor }}"></rect><rect x="3.5" y="3.5" width="7" height="7" fill="{{ statusColor }}"></rect></svg>
+      <span style="font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.28em; text-transform: uppercase;">CODEX&#8209;FLEET</span>
+      <span style="font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.28em; color: rgba(255,255,255,0.34);">// OMNI&#8209;TERMINAL</span>
+    </div>
+    <div style="display: flex; align-items: stretch;">
+      <div style="display: flex; align-items: center; gap: 8px; padding: clamp(8px,0.9vw,12px) clamp(12px,1.3vw,20px); border-left: 1px solid rgba(255,255,255,0.1); font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.2em; color: rgba(255,255,255,0.5);">UPLINK&#160;<span style="color: {{ statusColor }};">{{ uplinkLabel }}</span></div>
+      <div style="display: flex; align-items: center; padding: clamp(8px,0.9vw,12px) clamp(12px,1.3vw,20px); border-left: 1px solid rgba(255,255,255,0.1); font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.2em; min-width: 11ch; justify-content: flex-end;">{{ clock }}</div>
+    </div>
+  </div>
+
+  <!-- KINETIC HEADLINE -->
+  <div style="position: relative; z-index: 2; border: 1px solid rgba(255,255,255,0.1); border-bottom: none; padding: clamp(10px,1.3vw,22px) clamp(12px,1.3vw,20px) clamp(4px,0.5vw,8px); overflow: hidden;">
+    <div style="font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.34em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: clamp(2px,0.4vw,6px);">COMMS&#160;BRIDGE&#160;&#183;&#160;DATA&#160;AUDIT&#160;&#183;&#160;PROMPT&#160;ENGINEERING</div>
+    <div style="display: flex; align-items: baseline; gap: clamp(10px,1.5vw,26px); width: 124vw; white-space: nowrap; line-height: 0.82;">
+      <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(54px, 12.4vw, 218px); letter-spacing: -0.02em; color: #F4F4F2;">{{ header }}</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: clamp(11px,1vw,16px); letter-spacing: 0.18em; color: {{ accent }}; align-self: flex-end; padding-bottom: clamp(8px,1vw,20px);">// TERMINAL</span>
+      <span style="font-family: 'Instrument Serif', serif; font-size: clamp(38px, 7.4vw, 140px); letter-spacing: -0.01em; color: rgba(255,255,255,0.12);">FLEET</span>
+    </div>
+  </div>
+
+  <!-- MODULE GRID -->
+  <div style="position: relative; z-index: 1; display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: auto auto; gap: clamp(10px,1.1vw,16px); border: 1px solid rgba(255,255,255,0.1); padding: clamp(10px,1.1vw,16px);">
+
+    <!-- ============ MODULE 01 : COMMS BRIDGE ============ -->
+    <section style="grid-column: 1 / 6; grid-row: 1 / 2; position: relative; border: 1px solid rgba(255,255,255,0.1); background: #000; padding: clamp(12px,1.3vw,18px); display: flex; flex-direction: column; gap: clamp(10px,1.1vw,16px); overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-size: clamp(8px,0.66vw,11px); color: {{ accent }}; letter-spacing: 0.1em;">01</span>
+          <span style="font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.22em; text-transform: uppercase;">COMMS.BRIDGE</span>
+        </div>
+        <span style="display:flex; align-items:center; gap:6px; font-size: clamp(8px,0.66vw,11px); letter-spacing: 0.18em; color: {{ statusColor }};"><svg width="7" height="7" viewBox="0 0 7 7"><rect width="7" height="7" fill="{{ statusColor }}"></rect></svg>{{ bridgeState }}</span>
+      </div>
+
+      <!-- hidden uplink toggle, top-right corner -->
+      <div onClick="{{ toggleUplink }}" title="TOGGLE UPLINK" style="position: absolute; top: clamp(10px,1.1vw,16px); right: clamp(10px,1.1vw,16px); width: 16px; height: 16px; border: 1px solid rgba(255,255,255,0.25); cursor: pointer; z-index: 4; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 7px; height: 7px; background: {{ statusColor }};"></div>
+      </div>
+
+      <div style="display: flex; gap: clamp(12px,1.4vw,20px); align-items: stretch;">
+        <div style="position: relative; flex: 0 0 auto; width: clamp(112px,11vw,168px); aspect-ratio: 1; border: 1px solid rgba(255,255,255,0.1);">
+          <svg width="100%" height="100%" viewBox="0 0 100 100" style="display:block;">
+            <g stroke="rgba(255,255,255,0.14)" fill="none"><circle cx="50" cy="50" r="46"></circle><circle cx="50" cy="50" r="31"></circle><circle cx="50" cy="50" r="16"></circle></g>
+            <g stroke="rgba(255,255,255,0.08)"><line x1="50" y1="4" x2="50" y2="96"></line><line x1="4" y1="50" x2="96" y2="50"></line></g>
+            <line x1="50" y1="50" x2="{{ radarX }}" y2="{{ radarY }}" stroke="{{ statusColor }}" stroke-width="1.2"></line>
+            <circle cx="50" cy="50" r="2.4" fill="{{ statusColor }}"></circle>
+            <sc-for list="{{ blips }}" as="b" hint-placeholder-count="0">
+              <rect x="{{ b.x }}" y="{{ b.y }}" width="2.6" height="2.6" fill="{{ b.col }}"></rect>
+            </sc-for>
+          </svg>
+          <div style="position: absolute; bottom: 5px; left: 6px; font-size: clamp(7px,0.6vw,10px); letter-spacing: 0.12em; color: rgba(255,255,255,0.45);">{{ bridgeKbs }}&#160;kb/s</div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: clamp(8px,1vw,12px);">
+          <div>
+            <div style="font-size: clamp(8px,0.66vw,11px); color: rgba(255,255,255,0.42); letter-spacing: 0.14em;">ORCHESTRATOR</div>
+            <div style="font-family:'Instrument Serif',serif; font-size: clamp(18px,2vw,30px); color:#F4F4F2;">KAPITAN&#8209;PLANETA</div>
+            <div style="font-size: clamp(8.5px,0.7vw,11.5px); color: {{ statusColor }}; letter-spacing: 0.1em;">{{ orchState }}</div>
+          </div>
+          <sc-for list="{{ nodes }}" as="nd" hint-placeholder-count="2">
+            <div style="display:flex; flex-direction:column; gap:5px;">
+              <div style="display:flex; justify-content:space-between; font-size: clamp(8.5px,0.7vw,11.5px); letter-spacing: 0.08em;"><span style="color:rgba(255,255,255,0.6);">NODE.{{ nd.name }}</span><span style="color:{{ nd.col }};">{{ nd.loadLabel }}</span></div>
+              <div style="display:flex; gap:2px; height: clamp(8px,0.9vh,12px);">
+                <sc-for list="{{ nd.segs }}" as="sg" hint-placeholder-count="22">
+                  <div style="flex:1; background: {{ sg.col }};"></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="position: relative; margin-top: 2px; border: 1px solid rgba(255,255,255,0.12); background: #050505; padding: clamp(10px,1vw,14px); margin-left: clamp(8px,1vw,18px); margin-right: clamp(-12px,-1vw,-6px);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+          <span style="font-size: clamp(8px,0.66vw,11px); letter-spacing: 0.14em; color: rgba(255,255,255,0.55);">~/bridge/handoff&#8209;current.json</span>
+          <span style="font-size: clamp(7.5px,0.62vw,10px); letter-spacing: 0.1em; color: {{ statusColor }};">&#9679;&#160;{{ watchLabel }}</span>
+        </div>
+        <div style="font-size: clamp(9px,0.74vw,12px); line-height: 1.55; color: rgba(236,236,236,0.82); white-space: pre;">{{ handoffJson }}</div>
+      </div>
+    </section>
+
+    <!-- ============ MODULE 02 : AUDIT & EXTRACTION ============ -->
+    <section style="grid-column: 6 / 13; grid-row: 1 / 2; position: relative; border: 1px solid rgba(255,255,255,0.1); background: #000; padding: clamp(12px,1.3vw,18px); display: flex; flex-direction: column; gap: clamp(10px,1.1vw,14px); overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: clamp(8px,0.9vw,12px);">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-size: clamp(8px,0.66vw,11px); color: {{ accent }}; letter-spacing: 0.1em;">02</span>
+          <span style="font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.22em; text-transform: uppercase;">AUDIT.EXTRACTION</span>
+        </div>
+        <span style="font-size: clamp(8px,0.66vw,11px); letter-spacing: 0.14em; color: {{ bulkColor }};">{{ bulkLabel }}</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px,1.4vw,22px);">
+        <div style="display:flex; flex-direction:column; gap:7px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; font-size: clamp(8.5px,0.7vw,11.5px); letter-spacing:0.08em;"><span style="color:rgba(255,255,255,0.6);">AUDYT&#160;94S</span><span style="font-family:'Instrument Serif',serif; font-size: clamp(16px,1.8vw,26px); color:#F4F4F2;">{{ audit94Label }}</span></div>
+          <div style="display:flex; gap: 2px; height: clamp(14px,1.5vh,20px); border:1px solid rgba(255,255,255,0.1); padding:2px;">
+            <sc-for list="{{ audit94Segs }}" as="sg" hint-placeholder-count="32"><div style="flex:1; background:{{ sg.col }};"></div></sc-for>
+          </div>
+          <div style="font-size: clamp(8px,0.64vw,10.5px); color: rgba(255,255,255,0.4); letter-spacing:0.06em;">heuristics&#160;scanned&#160;{{ audit94Scan }}</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:7px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; font-size: clamp(8.5px,0.7vw,11.5px); letter-spacing:0.08em;"><span style="color:rgba(255,255,255,0.6);">IADS&#160;EXTRACT</span><span style="font-family:'Instrument Serif',serif; font-size: clamp(16px,1.8vw,26px); color:{{ accent }};">{{ iadsLabel }}</span></div>
+          <div style="display:flex; gap: 2px; height: clamp(14px,1.5vh,20px); border:1px solid rgba(255,255,255,0.1); padding:2px;">
+            <sc-for list="{{ iadsSegs }}" as="sg" hint-placeholder-count="32"><div style="flex:1; background:{{ sg.col }};"></div></sc-for>
+          </div>
+          <div style="font-size: clamp(8px,0.64vw,10.5px); color: rgba(255,255,255,0.4); letter-spacing:0.06em;">ext_rate&#160;{{ extRate }}&#160;f/s&#160;&#183;&#160;16,384&#160;total</div>
+        </div>
+      </div>
+
+      <div style="flex:1; min-height: clamp(120px,16vh,210px); border:1px solid rgba(255,255,255,0.1); background:#040404; padding: clamp(8px,0.9vw,12px); display:flex; flex-direction:column; justify-content:flex-end; gap:2px; font-size: clamp(9px,0.74vw,12px); line-height:1.45; overflow:hidden;">
+        <sc-for list="{{ auditLogs }}" as="line" hint-placeholder-count="1">
+          <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color: rgba(236,236,236,0.78);">{{ line }}</div>
+        </sc-for>
+      </div>
+      <div style="display:flex; align-items:center; gap:7px; font-size: clamp(9px,0.74vw,12px);">
+        <span style="color:{{ statusColor }};">audit@codex</span><span style="color:rgba(255,255,255,0.4);">:#</span><span style="color:#ECECEC;">{{ auditCmd }}</span>
+        <span style="display:inline-block; width:0.62em; height:1.05em; background:{{ statusColor }}; animation: cfCaret 1.06s steps(1) infinite;"></span>
+      </div>
+    </section>
+
+    <!-- ============ MODULE 03 : PROMPT TRACKER ============ -->
+    <section style="grid-column: 1 / 13; grid-row: 2 / 3; position: relative; border: 1px solid rgba(255,255,255,0.1); background: #000; padding: clamp(12px,1.3vw,18px); display: flex; flex-direction: column; gap: clamp(10px,1.1vw,14px); overflow: hidden;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: clamp(8px,0.9vw,12px);">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-size: clamp(8px,0.66vw,11px); color: {{ accent }}; letter-spacing: 0.1em;">03</span>
+          <span style="font-size: clamp(9px,0.72vw,12px); letter-spacing: 0.22em; text-transform: uppercase;">PROMPT.TRACKER</span>
+          <span style="font-size: clamp(8px,0.66vw,11px); color: rgba(255,255,255,0.4); letter-spacing: 0.12em;">// CLICK CELLS TO CYCLE</span>
+        </div>
+        <div style="display:flex; gap: clamp(12px,1.4vw,22px); font-size: clamp(8px,0.66vw,11px); letter-spacing:0.14em; color: rgba(255,255,255,0.45);">
+          <span>BPM&#160;<span style="color:#ECECEC;">{{ bpm }}</span></span>
+          <span>SEL&#160;<span style="color:{{ accent }};">{{ selHex }}</span>/0F</span>
+          <span style="color:{{ accent }};">&#9632;&#160;EDIT</span>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 3ch repeat(5, 1fr); gap: clamp(6px,0.8vw,12px); font-size: clamp(8px,0.64vw,10.5px); letter-spacing: 0.16em; color: rgba(255,255,255,0.4); border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:5px;">
+        <span>#</span><span>LENS</span><span>LIGHT</span><span>MUSIC</span><span>MOTION</span><span>SEED</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:2px; font-size: clamp(9px,0.74vw,12px);">
+        <sc-for list="{{ trackerRows }}" as="r" hint-placeholder-count="8">
+          <div style="display:grid; grid-template-columns: 3ch repeat(5, 1fr); gap: clamp(6px,0.8vw,12px); padding: clamp(3px,0.4vw,5px) 4px; background: {{ r.bg }}; border-left: 2px solid {{ r.edge }};">
+            <span onClick="{{ r.selectRow }}" style="color: {{ r.stepCol }}; cursor:pointer;">{{ r.step }}</span>
+            <span onClick="{{ r.cycleLens }}" style="color: #ECECEC; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.lens }}</span>
+            <span onClick="{{ r.cycleLight }}" style="color: rgba(236,236,236,0.78); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.light }}</span>
+            <span onClick="{{ r.cycleMusic }}" style="color: {{ accent }}; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.music }}</span>
+            <span onClick="{{ r.cycleMotion }}" style="color: rgba(236,236,236,0.78); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.motion }}</span>
+            <span style="color: rgba(255,255,255,0.5);">{{ r.seed }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- OUTPUT STRING -->
+      <div style="border:1px solid rgba(255,255,255,0.12); background:#050505; padding: clamp(10px,1vw,14px); display:flex; flex-direction:column; gap: clamp(7px,0.8vw,10px); margin-top:2px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size: clamp(7.5px,0.62vw,10px); letter-spacing:0.18em; color: rgba(255,255,255,0.45);">[ OUTPUT_STRING ] &#8212; ROW {{ selHex }}</span>
+          <button onClick="{{ copyOut }}" style="border:1px solid rgba(255,255,255,0.2); background: {{ copyBg }}; color: {{ copyFg }}; font-family:'IBM Plex Mono',monospace; font-size: clamp(8px,0.66vw,11px); letter-spacing:0.18em; padding: clamp(5px,0.6vw,8px) clamp(10px,1vw,16px); cursor:pointer; text-transform:uppercase;">{{ copyLabel }}</button>
+        </div>
+        <div style="font-size: clamp(10px,0.82vw,13.5px); line-height: 1.6; color: #ECECEC; word-break: break-word;">{{ outputString }}</div>
+      </div>
+
+      <!-- param slot bay -->
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: clamp(8px,1vw,14px);">
+        <div style="border:1px solid rgba(255,255,255,0.1); padding: clamp(8px,0.9vw,12px);">
+          <div style="font-size: clamp(7.5px,0.62vw,10px); letter-spacing:0.16em; color:rgba(255,255,255,0.4);">OPTICS</div>
+          <div style="font-family:'Instrument Serif',serif; font-size: clamp(16px,1.8vw,26px); color:#F4F4F2; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ selLens }}</div>
+          <div style="font-size: clamp(8px,0.66vw,11px); color:{{ accent }}; letter-spacing:0.06em;">shallow&#160;DoF&#160;&#183;&#160;anamorphic</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.1); padding: clamp(8px,0.9vw,12px);">
+          <div style="font-size: clamp(7.5px,0.62vw,10px); letter-spacing:0.16em; color:rgba(255,255,255,0.4);">LIGHTING</div>
+          <div style="font-family:'Instrument Serif',serif; font-size: clamp(16px,1.8vw,26px); color:#F4F4F2; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ selLight }}</div>
+          <div style="font-size: clamp(8px,0.66vw,11px); color:{{ accent }}; letter-spacing:0.06em;">practical&#160;&#183;&#160;low-key</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.1); padding: clamp(8px,0.9vw,12px);">
+          <div style="font-size: clamp(7.5px,0.62vw,10px); letter-spacing:0.16em; color:rgba(255,255,255,0.4);">SCORE</div>
+          <div style="font-family:'Instrument Serif',serif; font-size: clamp(16px,1.8vw,26px); color:#F4F4F2; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ selMusic }}</div>
+          <div style="font-size: clamp(8px,0.66vw,11px); color:{{ accent }}; letter-spacing:0.06em;">tempo&#160;{{ bpm }}&#160;BPM</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.12); padding: clamp(8px,0.9vw,12px); background:#050505; display:flex; flex-direction:column; justify-content:space-between; gap:6px;">
+          <div style="font-size: clamp(7.5px,0.62vw,10px); letter-spacing:0.16em; color:rgba(255,255,255,0.4);">RENDER&#160;QUEUE</div>
+          <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:'Instrument Serif',serif; font-size: clamp(16px,1.8vw,26px); color:{{ accent }};">{{ queueCount }}</span><span style="font-size: clamp(8px,0.66vw,11px); color:rgba(255,255,255,0.45);">staged</span></div>
+          <button onClick="{{ commit }}" style="border:1px solid rgba(255,255,255,0.18); background:transparent; color:#ECECEC; font-family:'IBM Plex Mono',monospace; font-size: clamp(8.5px,0.7vw,11.5px); letter-spacing:0.16em; padding: clamp(6px,0.7vw,9px); cursor:pointer; text-transform:uppercase;">STAGE&#160;ROW</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div style="position: relative; z-index: 3; display: flex; align-items: stretch; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); border-top: none; font-size: clamp(8.5px,0.7vw,11.5px); letter-spacing: 0.16em; color: rgba(255,255,255,0.4);">
+    <div style="padding: clamp(7px,0.8vw,11px) clamp(12px,1.3vw,20px); border-right: 1px solid rgba(255,255,255,0.1);">EXEC&#160;<span style="color:{{ accent }};">KAPITAN&#8209;PLANETA.sh</span></div>
+    <div style="display:flex;">
+      <div style="padding: clamp(7px,0.8vw,11px) clamp(12px,1.3vw,20px); border-left: 1px solid rgba(255,255,255,0.1);">BRIDGE&#160;<span style="color:{{ statusColor }};">{{ bridgeState }}</span></div>
+      <div style="padding: clamp(7px,0.8vw,11px) clamp(12px,1.3vw,20px); border-left: 1px solid rgba(255,255,255,0.1);">IADS&#160;<span style="color:#ECECEC;">{{ iadsShort }}</span></div>
+      <div style="padding: clamp(7px,0.8vw,11px) clamp(12px,1.3vw,20px); border-left: 1px solid rgba(255,255,255,0.1);">{{ uptime }}</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 1320, &quot;height&quot;: 940 },
+  &quot;accent&quot;: {
+    &quot;editor&quot;: &quot;color&quot;,
+    &quot;default&quot;: &quot;#28E07B&quot;,
+    &quot;options&quot;: [&quot;#28E07B&quot;, &quot;#E8A33C&quot;, &quot;#5AA9FF&quot;, &quot;#FFFFFF&quot;],
+    &quot;tsType&quot;: &quot;string&quot;
+  },
+  &quot;grainOpacity&quot;: {
+    &quot;editor&quot;: &quot;float&quot;,
+    &quot;default&quot;: 0.07,
+    &quot;min&quot;: 0,
+    &quot;max&quot;: 0.2,
+    &quot;step&quot;: 0.01,
+    &quot;tsType&quot;: &quot;number&quot;
+  },
+  &quot;header&quot;: {
+    &quot;editor&quot;: &quot;text&quot;,
+    &quot;default&quot;: &quot;OMNI&quot;,
+    &quot;tsType&quot;: &quot;string&quot;
+  }
+}">
+class Component extends DCLogic {
+  state = {
+    now: new Date(),
+    boot: Date.now(),
+    isNetworkLive: false,
+    wsMode: false,        // true when ?ws= param present — uses real WebSocket
+    handoffData: null,    // parsed JSON from real handoff file (WS mode)
+    radarAngle: 0,
+    bridgeKbs: 0,
+    nodes: [
+      { name: "OMEN", load: 0 },
+      { name: "VIVO", load: 0 },
+    ],
+    handoffRev: 4471,
+    audit94: 0,
+    audit94Scan: 0,
+    iadsDone: 0,
+    extRate: 0,
+    auditLogs: [],
+    blips: [],
+    rows: [
+      { lens: 0, light: 0, music: 0, motion: 0, seed: "0x7F" },
+      { lens: 1, light: 2, music: 1, motion: 7, seed: "0x12" },
+      { lens: 2, light: 1, music: 3, motion: 6, seed: "0x9A" },
+      { lens: 0, light: 2, music: 0, motion: 3, seed: "0x44" },
+      { lens: 3, light: 0, music: 4, motion: 1, seed: "0x21" },
+      { lens: 4, light: 1, music: 3, motion: 6, seed: "0xBE" },
+      { lens: 0, light: 2, music: 1, motion: 4, seed: "0x58" },
+      { lens: 1, light: 4, music: 2, motion: 5, seed: "0x0D" },
+    ],
+    selRow: 0,
+    bpm: 124,
+    queueCount: 7,
+    copied: false,
+  };
+
+  OPTS = {
+    lens: ["85mm f/1.8", "35mm f/2.0", "135mm f/2", "50mm f/1.4", "24mm f/4"],
+    light: ["RIM 3200K", "KEY 5600K", "PRACT NEON", "FILL -1.5", "BACKLIT"],
+    music: ["SYNTHWAVE", "EPIC TAVERN FOLK", "90s PL HIP-HOP", "EPIC ORCH", "DRONE PAD"],
+    motion: ["DOLLY-IN", "PAN-R", "PAN-L", "ORBIT", "STATIC", "CRANE", "PUSH", "HANDHELD"],
+  };
+
+  logPool = [
+    "[OK]   extract entry {e} :: {b}kb verified",
+    "[..]   audit.94S scan heuristic {h}/312",
+    "[OK]   batch 0x{x} flushed :: {n} files",
+    "[WARN] entry {e} :: retry checksum",
+    "bridge  rx={b}kb tx={n}kb node={nd}",
+    "[OK]   manifest-current.json rev={r}",
+    "score   bind={mu} bpm={bpm} node={nd}",
+    "[..]   reading handoff-current.json rev={r}",
+    "[..]   IADS extract {p}% :: {nd} active",
+  ];
+
+  componentDidMount() {
+    // ── WebSocket mode ────────────────────────────────────────────────────────
+    // Add ?ws=wss://YOUR-TUNNEL.trycloudflare.com to the URL to use real data.
+    // Without the param the interface runs in simulation mode (toggle in corner).
+    const wsParam = new URLSearchParams(location.search).get('ws');
+    if (wsParam) {
+      this.setState({ wsMode: true });
+      this._wsUrl = wsParam;
+      this._connectWs();
+    }
+
+    this.slow = setInterval(() => {
+      this.setState((s) => {
+        // In WS mode real data arrives via WebSocket — only tick the clock here.
+        if (s.wsMode) return { now: new Date() };
+        if (!s.isNetworkLive) return { now: new Date() };
+        const mu = this.OPTS.music[s.rows[s.selRow].music];
+        const t = this.logPool[Math.floor(Math.random() * this.logPool.length)];
+        const line = t
+          .replace("{e}", (4000 + Math.floor(Math.random() * 9000)).toString())
+          .replace("{b}", (12 + Math.floor(Math.random() * 980)).toString())
+          .replace("{h}", (60 + Math.floor(Math.random() * 250)).toString())
+          .replace("{x}", Math.floor(Math.random() * 16).toString(16).toUpperCase())
+          .replace(/\{n\}/g, (8 + Math.floor(Math.random() * 900)).toString())
+          .replace(/\{nd\}/g, Math.random() < 0.5 ? "OMEN" : "VIVO")
+          .replace(/\{r\}/g, (s.handoffRev + 1).toString())
+          .replace("{bpm}", s.bpm.toString())
+          .replace("{mu}", mu)
+          .replace("{p}", ((s.iadsDone / 16384) * 100).toFixed(1));
+        const iadsDone = Math.min(16384, s.iadsDone + 90 + Math.floor(Math.random() * 320));
+        const a94 = s.audit94 + Math.random() * 1.4;
+        return {
+          auditLogs: s.auditLogs.concat(line).slice(-9),
+          now: new Date(),
+          handoffRev: s.handoffRev + 1,
+          iadsDone: iadsDone >= 16384 ? 6241 : iadsDone,
+          audit94: a94 >= 99 ? 64.2 : +a94.toFixed(1),
+          audit94Scan: (s.audit94Scan + 40 + Math.floor(Math.random() * 120)) % 18600,
+          nodes: s.nodes.map((n) => ({ ...n, load: Math.max(28, Math.min(98, Math.round(n.load + (Math.random() - 0.5) * 16))) })),
+          bridgeKbs: Math.max(40, Math.min(420, Math.round(s.bridgeKbs + (Math.random() - 0.5) * 90))),
+        };
+      });
+    }, 1050);
+
+    this.fast = setInterval(() => {
+      this.setState((s) => {
+        if (!s.isNetworkLive) return { now: new Date() };
+        const blips = Array.from({ length: 2 + Math.floor(Math.random() * 3) }, () => {
+          const a = Math.random() * Math.PI * 2;
+          const rr = 8 + Math.random() * 38;
+          return { x: (50 + Math.cos(a) * rr).toFixed(1), y: (50 + Math.sin(a) * rr).toFixed(1), col: Math.random() < 0.6 ? (this.props.accent ?? "#28E07B") : "rgba(255,255,255,0.5)" };
+        });
+        return {
+          now: new Date(),
+          radarAngle: (s.radarAngle + 0.22) % (Math.PI * 2),
+          // In WS mode extRate comes from real data; don't overwrite it here
+          extRate: s.wsMode ? s.extRate : +(1180 + Math.random() * 240).toFixed(4),
+          blips,
+        };
+      });
+    }, 130);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.slow);
+    clearInterval(this.fast);
+    clearTimeout(this._wsReconnect);
+    if (this._ws) { try { this._ws.close(); } catch {} }
+  }
+
+  // ── WebSocket client ────────────────────────────────────────────────────────
+
+  _connectWs() {
+    const base = this._wsUrl;
+    const sep  = base.includes('?') ? '&' : '?';
+    const url  = base.includes('role=') ? base : base + sep + 'role=client';
+
+    const tryConnect = () => {
+      try {
+        const ws = new WebSocket(url);
+        this._ws = ws;
+
+        ws.onopen = () => {
+          this.setState({ isNetworkLive: true });
+        };
+
+        ws.onmessage = (e) => {
+          try { this._applyFleetState(JSON.parse(e.data)); } catch {}
+        };
+
+        ws.onclose = () => {
+          this.setState({
+            isNetworkLive: false,
+            blips: [],
+            nodes: [{ name: "OMEN", load: 0 }, { name: "VIVO", load: 0 }],
+          });
+          this._wsReconnect = setTimeout(tryConnect, 5000);
+        };
+
+        ws.onerror = () => ws.close();
+      } catch {
+        this._wsReconnect = setTimeout(tryConnect, 5000);
+      }
+    };
+
+    tryConnect();
+  }
+
+  _applyFleetState(msg) {
+    if (msg.type !== 'fleet_state') return;
+    this.setState((s) => {
+      // Map { OMEN: { cpu, mem, online }, VIVO: ... } → nodes array
+      const nodeMap = msg.nodes || {};
+      const nodes = Object.keys(nodeMap).length
+        ? Object.entries(nodeMap).map(([name, nd]) => ({ name, load: nd.cpu ?? 0 }))
+        : s.nodes;
+
+      const newLogs = Array.isArray(msg.logs) && msg.logs.length ? msg.logs.slice(-9) : s.auditLogs;
+      const hd      = msg.handoff  || s.handoffData;
+      const rev     = hd?.rev      || s.handoffRev + 1;
+      const totalCpu = nodes.reduce((a, n) => a + (n.load || 0), 0);
+
+      return {
+        isNetworkLive: true,
+        nodes,
+        auditLogs:   newLogs,
+        handoffData: hd,
+        handoffRev:  rev,
+        bridgeKbs:   Math.round(totalCpu * 1.8 + Math.random() * 30),
+        iadsDone:    msg.iadsDone ?? s.iadsDone,
+        audit94:     msg.audit94  ?? s.audit94,
+      };
+    });
+  }
+
+  toggleUplink = () => {
+    this.setState((s) => {
+      // In WS mode the connection is real — the button does nothing
+      if (s.wsMode) return {};
+      if (s.isNetworkLive) {
+        return { isNetworkLive: false, nodes: s.nodes.map((n) => ({ ...n, load: 0 })), bridgeKbs: 0, auditLogs: [], blips: [], audit94: 0, audit94Scan: 0, iadsDone: 0, extRate: 0 };
+      }
+      return {
+        isNetworkLive: true,
+        nodes: [{ name: "OMEN", load: 74 }, { name: "VIVO", load: 58 }],
+        bridgeKbs: 184, audit94: 64.2, audit94Scan: 6120, iadsDone: 6241, extRate: 1284.04,
+        auditLogs: ["[OK]   uplink established :: cloudflared", "[OK]   handshake KAPITAN-PLANETA :: SYNCED", "[..]   reading handoff-current.json"],
+      };
+    });
+  };
+
+  cycle(rowIdx, key) {
+    this.setState((s) => {
+      const opts = this.OPTS[key];
+      const rows = s.rows.map((r, i) => (i === rowIdx ? { ...r, [key]: (r[key] + 1) % opts.length } : r));
+      return { rows, selRow: rowIdx };
+    });
+  }
+
+  buildString(r) {
+    return "SCENE_PROMPT :: cinematic shot, " + this.OPTS.lens[r.lens] + " lens, " + this.OPTS.light[r.light] +
+      " lighting, " + this.OPTS.motion[r.motion].toLowerCase().replace("-", " ") + " camera move, scored with " +
+      this.OPTS.music[r.music] + "; anamorphic flare, 35mm film grain, high-contrast low-key, volumetric haze, seed " + r.seed;
+  }
+
+  copyOut = () => {
+    const r = this.state.rows[this.state.selRow];
+    const str = this.buildString(r);
+    try { navigator.clipboard && navigator.clipboard.writeText(str); } catch (e) {}
+    this.setState({ copied: true });
+    clearTimeout(this._cp);
+    this._cp = setTimeout(() => this.setState({ copied: false }), 1500);
+  };
+
+  pad(n) { return n.toString().padStart(2, "0"); }
+  hex(n) { return n.toString(16).toUpperCase().padStart(2, "0"); }
+
+  segs(pct, n, jitter) {
+    const accent = this.props.accent ?? "#28E07B";
+    const lit = Math.round((pct / 100) * n) + (jitter && pct > 0 ? (Math.random() < 0.4 ? -1 : 0) : 0);
+    return Array.from({ length: n }, (_, i) => ({ col: i < lit ? accent : "rgba(255,255,255,0.08)" }));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const accent = this.props.accent ?? "#28E07B";
+    const offline = "#E5484D";
+    const live = s.isNetworkLive;
+    const statusColor = live ? accent : offline;
+
+    const d = s.now;
+    const clock = this.pad(d.getHours()) + ":" + this.pad(d.getMinutes()) + ":" + this.pad(d.getSeconds());
+    const upS = Math.floor((Date.now() - s.boot) / 1000);
+    const uptime = "UP " + this.pad(Math.floor(upS / 3600)) + ":" + this.pad(Math.floor(upS / 60) % 60) + ":" + this.pad(upS % 60);
+
+    const rx = live ? 50 + Math.cos(s.radarAngle) * 46 : 50;
+    const ry = live ? 50 + Math.sin(s.radarAngle) * 46 : 50;
+
+    let handoffJson;
+    if (live && s.wsMode && s.handoffData) {
+      // Real file content from the machine agent
+      handoffJson = JSON.stringify(s.handoffData, null, 2);
+    } else if (live) {
+      handoffJson = "{\n  \"rev\": " + s.handoffRev + ",\n  \"orchestrator\": \"KAPITAN-PLANETA\",\n  \"status\": \"ARBITRATING\",\n  \"nodes\": [\"OMEN\", \"VIVO\"],\n  \"lock\": " + (s.handoffRev % 4 === 0 ? "true" : "false") + ",\n  \"ts\": \"" + clock + "\"\n}";
+    } else {
+      handoffJson = "{\n  \"orchestrator\": \"KAPITAN-PLANETA\",\n  \"status\": \"WAITING\",\n  \"nodes\": [],\n  \"lock\": false,\n  \"signal\": null\n}";
+    }
+
+    const trackerRows = s.rows.map((r, i) => {
+      const sel = i === s.selRow;
+      return {
+        step: this.hex(i),
+        lens: this.OPTS.lens[r.lens],
+        light: this.OPTS.light[r.light],
+        music: this.OPTS.music[r.music],
+        motion: this.OPTS.motion[r.motion],
+        seed: r.seed,
+        bg: sel ? accent + "1A" : "transparent",
+        edge: sel ? accent : "rgba(255,255,255,0.06)",
+        stepCol: sel ? accent : "rgba(255,255,255,0.4)",
+        selectRow: () => this.setState({ selRow: i }),
+        cycleLens: () => this.cycle(i, "lens"),
+        cycleLight: () => this.cycle(i, "light"),
+        cycleMusic: () => this.cycle(i, "music"),
+        cycleMotion: () => this.cycle(i, "motion"),
+      };
+    });
+
+    const selR = s.rows[s.selRow];
+
+    return {
+      accent,
+      statusColor,
+      grainOpacity: this.props.grainOpacity ?? 0.07,
+      header: this.props.header ?? "OMNI",
+      clock, uptime,
+      uplinkLabel: s.wsMode ? (live ? "WS:LIVE" : "WS:CONNECTING...") : (live ? "LIVE" : "OFFLINE"),
+      bridgeState: live ? "LISTENING" : "OFFLINE",
+      orchState: live
+        ? (s.wsMode ? "PRIMARY // REAL-TIME FEED ACTIVE" : "PRIMARY // ARBITRATING 02 NODES")
+        : (s.wsMode ? "CONNECTING TO FLEET..." : "WAITING FOR SIGNAL..."),
+      watchLabel: live ? "WATCH" : "IDLE",
+      radarX: rx.toFixed(1), radarY: ry.toFixed(1),
+      blips: s.blips,
+      bridgeKbs: s.bridgeKbs,
+      nodes: s.nodes.map((n) => ({
+        name: n.name,
+        loadLabel: live ? n.load + "%" : "[OFFLINE]",
+        col: live ? accent : offline,
+        segs: this.segs(n.load, 22, live),
+      })),
+      handoffJson,
+      bulkLabel: live ? "BULK OPS" : "STANDBY",
+      bulkColor: live ? "#E8A33C" : "rgba(255,255,255,0.4)",
+      audit94Label: live ? s.audit94.toFixed(1) + "%" : "--",
+      audit94Segs: this.segs(s.audit94, 32, live),
+      audit94Scan: live ? s.audit94Scan.toLocaleString() + " / 18,600" : "standby",
+      iadsLabel: live ? ((s.iadsDone / 16384) * 100).toFixed(1) + "%" : "--",
+      iadsSegs: this.segs(live ? (s.iadsDone / 16384) * 100 : 0, 32, live),
+      iadsShort: live ? s.iadsDone.toLocaleString() + "/16,384" : "STANDBY",
+      extRate: live ? s.extRate.toFixed(4) : "0.0000",
+      auditLogs: live ? s.auditLogs : ["WAITING FOR HANDOFF-CURRENT.JSON ..."],
+      auditCmd: live
+        ? (s.wsMode ? "ws.recv fleet_state :: OMEN|VIVO" : "tail -f /var/iads/extract.log")
+        : (s.wsMode ? "connecting to relay..." : "awaiting uplink --toggle corner"),
+      trackerRows,
+      selHex: this.hex(s.selRow),
+      bpm: s.bpm,
+      outputString: this.buildString(selR),
+      selLens: this.OPTS.lens[selR.lens],
+      selLight: this.OPTS.light[selR.light],
+      selMusic: this.OPTS.music[selR.music],
+      copyLabel: s.copied ? "COPIED" : "COPY",
+      copyBg: s.copied ? accent : "transparent",
+      copyFg: s.copied ? "#000" : "#ECECEC",
+      copyOut: this.copyOut,
+      queueCount: this.pad(s.queueCount),
+      commit: () => this.setState((st) => ({ queueCount: st.queueCount + 1 })),
+      toggleUplink: this.toggleUplink,
+    };
+  }
+}
+</script>
+</body>
+</html>
