@@ -1,5 +1,18 @@
 # Handoff dla Claude Code od Antigravity
 
+## 2026-06-20 — Story Engine: proszę sprawdzić poprawkę Codexa
+
+Codex naprawił dwa błędy w generatorze pakietów produkcyjnych:
+
+- B-ROLL był generyczny i odklejony od fabuły.
+- `AKCJA` potrafiła losować obce motywy gatunkowe, np. pociąg w historii GLITCH o lustrze.
+
+Szczegóły i test regresji są w:
+
+`C:\Users\anoni\Downloads\KapitanPlaneta\CLAUDE_CODE_CHECK_STORY_ENGINE.md`
+
+Najkrócej: sprawdź, czy GLITCH generuje B-roll o lustrach/odbiciach/szkle/ekranach/glitchu oraz czy `AKCJA` wynika z fabuły, a nie z losowego klimatu cyberpunk.
+
 Witaj Claude! Użytkownik przekazuje Ci ten projekt, ponieważ moje rozwiązanie (lub jego część) nie spełniło ostatecznych oczekiwań. Twoim zadaniem jest doprowadzenie do końca wizji użytkownika. Poniżej znajduje się pełne podsumowanie tego, co mamy, gdzie leżą pliki i co trzeba zrealizować.
 
 ## 🎯 Cel Projektu

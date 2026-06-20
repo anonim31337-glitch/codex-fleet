@@ -200,7 +200,61 @@ const PHYSICS = ['włosy na wietrze', 'symulacja tkaniny (powiewający płaszcz)
 // Mikroekspresje — reżyseria twarzy, żeby model nie wypluł manekina.
 const EMOTIONS = ['subtelny uśmieszek, oczy strzelają w lewo', 'pot na czole, ciężki oddech', 'zaciśnięta szczęka, zimne spojrzenie', 'drżąca dolna warga, łza w oku', 'rozszerzone źrenice, wstrzymany oddech', 'lekko uniesiona brew, niedowierzanie', 'zmęczone, opadające powieki', 'iskra determinacji w oczach'];
 // B-Roll / przebitki — co 3. ujęcie jako mikrodetal zamiast nudnego A-Roll.
-const BROLL = ['buty wchodzące w kałużę', 'palec naciska spust, lecą iskry', 'kapiący kran, kropla w zwolnionym tempie', 'migająca żarówka i brzęcząca elektryka', 'dłoń zaciska się na rękojeści', 'popiół z papierosa opada na blat', 'tykający zegar, drgająca wskazówka', 'plik banknotów przesuwany po stole', 'oko otwiera się gwałtownie', 'tryby mechanizmu obracają się'];
+const BROLL = [
+  'detal powierzchni z miejsca akcji odbija kolor przewodni historii',
+  'dłoń bohatera zatrzymuje się na kluczowym rekwizycie',
+  'ślad ruchu bohatera zostaje w świetle i kurzu sceny',
+  'mikrodetal lokacji zdradza napięcie nadchodzącego wydarzenia',
+  'bliski detal światła, tekstury i rekwizytu ważnego dla sceny',
+];
+const STORY_BROLL = [
+  {
+    match: /lustr|odbic|reflection|mirror|glitch|szk[lł]o|ekran|screen|ka[lł]u[zż]|neon/i,
+    items: [
+      'pęknięta tafla lustra łapie neon i dzieli twarz bohatera na fragmenty',
+      'odbicie w czarnym ekranie terminala uśmiecha się o ułamek sekundy za późno',
+      'kropla deszczu na szkle deformuje odbicie twarzy jak cyfrowy glitch',
+      'kałuża na podłodze pokazuje odwróconą sylwetkę poruszającą się samodzielnie',
+      'palce dotykają zimnego szkła, a pod opuszkami przechodzi fala pikselowego szumu',
+    ],
+  },
+  {
+    match: /poci[aą]g|train|kolej|lokomotyw|wagon|tory/i,
+    items: [
+      'koło pociągu przetacza się przez mokry tor w blasku sygnału',
+      'para i iskry uciekają spod lokomotywy przy niskim świetle',
+      'odbicie świateł stacji drży na metalowej burcie wagonu',
+      'dłoń bohatera zaciska bilet lub mały rekwizyt przy oknie wagonu',
+    ],
+  },
+  {
+    match: /mech|pilot|kokpit|hud|robot|lambda/i,
+    items: [
+      'HUD odbija się w wizjerze pilota, a czerwony alarm pulsuje po szkle',
+      'palce zaciskają joystick, w tle migają kontrolki kokpitu',
+      'hydrauliczny przewód drży od przeciążenia, spadają drobne iskry',
+      'metalowy panel mecha odbija błysk eksplozji i ślad deszczu',
+    ],
+  },
+  {
+    match: /smok|dragon|skrzyd[lł]|zamek|amulet|mag/i,
+    items: [
+      'łuska smoka połyskuje w złotym świetle, gdy spada pojedyncza iskra',
+      'amulet pulsuje ciepłym blaskiem w dłoni bohatera',
+      'cień skrzydła przesuwa się po kamiennej ścianie',
+      'kropla rosy na liściu odbija ognisty oddech smoka',
+    ],
+  },
+  {
+    match: /stacj|orbital|kosmos|wentylac|alien|technik/i,
+    items: [
+      'kratka wentylacyjna drży w czerwonym świetle alarmu',
+      'skafander odbija zimne światło korytarza i błysk ostrzeżenia',
+      'kropla kondensatu spływa po metalowej ścianie stacji',
+      'cień przesuwa się za zaparowaną szybą modułu',
+    ],
+  },
+];
 // Negative prompt — wyrzuca deformacje i znaki wodne.
 const NEGATIVE = 'zdeformowane dłonie, dodatkowe palce, zniekształcona twarz, martwe oczy, znak wodny, tekst, napisy, logo, rozmycie, zdublowane kończyny, artefakty AI, plastikowa skóra';
 // Domyślny strój i rekwizyt per gatunek (Costume/Prop Lock — Luma nie zmieni ciuchów między ujęciami).
@@ -243,6 +297,21 @@ const GENRE_CAM = {
 };
 const pick = (arr, i) => arr[((i % arr.length) + arr.length) % arr.length];
 
+function brollPoolFor(a) {
+  const storyText = [a.title, a.subject, a.logline, a.tone, a.genre, a.prop, a.musicWish].filter(Boolean).join(' ');
+  const hit = STORY_BROLL.find(rule => rule.match.test(storyText));
+  if (hit) return hit.items;
+  const prop = (a.prop || PROP_DEF[a.genre] || 'kluczowy rekwizyt').trim();
+  const subject = (a.subject || a.logline || 'świat historii').trim();
+  return [
+    `detal rekwizytu: ${prop}, pokazany w świetle sceny`,
+    `ślad akcji z historii: ${subject}, ujęty jako krótki insert`,
+    `tekstura miejsca z fabuły: kurz, światło i ruch powietrza wokół bohatera`,
+    `dłoń bohatera dotyka elementu ważnego dla historii: ${prop}`,
+    pick(BROLL, storyText.length || 1),
+  ];
+}
+
 // ── TŁUMACZ "PO LUDZKU" — żargon szkoły filmowej → zwykły język (audyt UX) ─────
 // Klucze sprawdzane od najdłuższych, żeby ECU/MCU nie złapało CU itd.
 const EXPLAIN = {
@@ -284,7 +353,7 @@ function varyShot(i, beat, a) {
     emotion: isFace ? pick(EMOTIONS, i * 2) : '',
     speedRamp: isClimax,
     isBroll,
-    brollSubject: isBroll ? pick(BROLL, i) : '',
+    brollSubject: isBroll ? pick(brollPoolFor(a), i) : '',
   };
 }
 

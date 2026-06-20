@@ -26,6 +26,44 @@ const PRESETS = [
   { _name: '📱 Short / TikTok', title: 'GLITCH', genre: 'sci-fi', format: 'short', subject: 'dziewczyna odkrywa, że jej odbicie żyje własnym życiem', tone: 'cyberpunk, neon', logline: 'Odbicie w lustrze przejmuje kontrolę.', lengthSec: 30, bpm: 128, vocalLang: 'EN', mood: 'niepokojący, dynamiczny', instruments: 'glitch, bass', audioType: 'song' },
 ];
 
+const ACTION_DIRECTOR_SYS = [
+  'Jestes rezyserem montazu i shotlisty. Piszesz PO POLSKU.',
+  'Dla kazdego ujecia napisz JEDEN konkretny, obrazowy moment akcji: co widac i co sie dzieje.',
+  'TWARDY WARUNEK: kazda akcja musi wynikac z fabuly, logline, bohatera albo podanych beatow.',
+  'Nie dodawaj obcych motywow, pojazdow, broni, papierosow, kranow, lokacji ani rekwizytow, jesli nie ma ich w fabule.',
+  'Jesli ujecie jest B-ROLL, zrob insert tematyczny zwiazany z historia, nie generyczna przebitke.',
+  'Przy historii GLITCH/lustra/odbicia: B-ROLL = lustro, szklo, odbicie, ekran, kaluza, neon, cyfrowy glitch.',
+  'Zwroc tylko liste numerowana, dokladnie tyle pozycji ile podano, format "N. opis".',
+].join(' ');
+
+function shotsForDirector(shots) {
+  return shots.slice(0, 60).map((s, i) => {
+    const p = s.params || {};
+    const camera = p.isBroll
+      ? `B-ROLL TEMATYCZNY: ${p.brollSubject}`
+      : `${p.size}, ruch: ${p.move}`;
+    return `${i + 1}. [${s.beat}] ${camera}`;
+  }).join('\n');
+}
+
+function actionDirectorUser(pk, tone, shots, story = '', branches = []) {
+  const st = pk.story;
+  const beats = st.beats.map(([b, d]) => `- ${b}: ${d}`).join('\n');
+  const branchTxt = branches.length ? `\nWybrane zwroty akcji:\n${branches.map((b, i) => `${i + 1}. ${b}`).join('\n')}` : '';
+  const storyTxt = story ? `\nFabula/scenariusz wygenerowany dla tego filmu:\n${story.slice(0, 3500)}\n` : '';
+  return `Film: ${pk.meta.title}
+Gatunek: ${pk.meta.genre}
+Temat: ${pk.ctx.subject}
+Logline: ${st.logline}
+Ton: ${tone || 'kinowy'}
+Beaty fabuly:
+${beats}${branchTxt}${storyTxt}
+Ujecia (beat + kamera + ewentualny temat B-ROLL):
+${shotsForDirector(shots)}
+
+Napisz osobny moment dla kazdego ujecia. Nie losuj ozdobnikow z gatunku; trzymaj sie tej konkretnej historii.`;
+}
+
 // Składa jeden wielki gotowiec do skopiowania (wklejasz wprost do LumaLabs).
 function buildMega(pk, story, lyrics, shots) {
   const L = [];
@@ -164,10 +202,9 @@ export default function StoryEngine() {
           `Autor tekstow piosenek. ORYGINALNY tekst po ${ans.vocalLang || 'PL'}. Sekcje [Intro][Chorus] i tagi glosow. Zwroc sam tekst.`,
           `Logline: ${st.logline}. Nastroj: ${ans.mood}. BPM: ${m.bpm}. Brzmienie: ${m.stylesEN}. Struktura:\n${m.lyricsEN}`,
           geminiKey, 4096); setLyricsAI(lyrics);
-        const list = shots.slice(0, 60).map((s, i) => `${i + 1}. [${s.beat}] ${s.params.size}, ruch: ${s.params.move}`).join('\n');
         const outD = await askGemini(
-          'Rezyser. PO POLSKU. Dla kazdego ujecia 1 zdanie: konkretny moment akcji. Lista numerowana "N. opis".',
-          `Logline: ${st.logline}. Ton: ${ans.tone}.\nUjecia:\n${list}`, geminiKey, 4096);
+          ACTION_DIRECTOR_SYS,
+          actionDirectorUser(pk, ans.tone, shots, story), geminiKey, 4096);
         const mp = {}; outD.split('\n').forEach((l) => { const mm = l.match(/^\s*(\d+)[.\)]\s*(.+)/); if (mm) mp[parseInt(mm[1], 10) - 1] = mm[2].trim(); });
         shots = shots.map((s, i) => (mp[i] ? { ...s, aiDesc: mp[i] } : s)); setEditShots(shots);
       }
@@ -229,14 +266,14 @@ ${screenplay.slice(0, 6000)}`;
     const prevContext = scenePack.slice(-3).map(s => `S${s.n}: ${s.desc}`).join('\n');
     const lockLine = `Continuity-lock: ${sceneAnalysis.hero}, ton: ${sceneAnalysis.tone}, ${sceneAnalysis.genre}`;
     try {
-      const sys = 'Jestes rezyserem. Piszesz PO POLSKU. Zwracasz TYLKO liste numerowana "N. BEAT | PLAN | RUCH | OPIS" — bez naglowkow, bez komentarzy.';
+      const sys = 'Jestes rezyserem adaptacji. Piszesz PO POLSKU. Zwracasz TYLKO liste numerowana "N. BEAT | PLAN | RUCH | OPIS" — bez naglowkow, bez komentarzy. OPIS musi wynikac z podanego tekstu i logline. Nie dodawaj obcych pojazdow, broni, rekwizytow ani miejsc, jesli nie ma ich w tekscie.';
       const textSlice = screenplay.slice(
         Math.floor((from - 1) / sceneCount * screenplay.length),
         Math.floor(to / sceneCount * screenplay.length) + 200
       );
       const usr = `Film: "${sceneAnalysis.title}". Logline: ${sceneAnalysis.logline}. Ton: ${sceneAnalysis.tone}.\n${lockLine}.\n${
         prevContext ? `Poprzednie ujecia (kontekst spójnosci):\n${prevContext}\n` : ''
-      }Wygeneruj ujecia od S${from} do S${to} na podstawie fragmentu tekstu:\n---\n${textSlice.slice(0, 3000)}\n---\nFormat kazdego: "${from}. BEAT | PLAN_OBRAZU | RUCH_KAMERY | 1_ZDANIE_CO_SIE_DZIEJE"\nBEAT = intro/verse/chorus/build/CLIMAX/bridge\nPLAN = ELS/LS/MS/MCU/CU/ECU/OTS/aerial\nRUCH = dolly-in/pan/tracking/push-in/handheld/static/crane`;
+      }Wygeneruj ujecia od S${from} do S${to} na podstawie fragmentu tekstu:\n---\n${textSlice.slice(0, 3000)}\n---\nKazde "1_ZDANIE_CO_SIE_DZIEJE" ma byc konkretna scena z tej historii, nie losowy klimat gatunku. Jesli robisz insert/B-ROLL, wybierz detal tematyczny z tekstu.\nFormat kazdego: "${from}. BEAT | PLAN_OBRAZU | RUCH_KAMERY | 1_ZDANIE_CO_SIE_DZIEJE"\nBEAT = intro/verse/chorus/build/CLIMAX/bridge\nPLAN = ELS/LS/MS/MCU/CU/ECU/OTS/aerial\nRUCH = dolly-in/pan/tracking/push-in/handheld/static/crane`;
       const out = await askGemini(sys, usr, geminiKey, 2048);
       const newShots = [];
       out.split('\n').forEach((line) => {
@@ -273,9 +310,8 @@ ${screenplay.slice(0, 6000)}`;
     setAiError(''); setAiBusy('shots');
     try {
       const listShots = editShots.slice(0, 60); // limit jednego wywołania
-      const list = listShots.map((s, i) => `${i + 1}. [${s.beat}] ${s.params.size}, ruch: ${s.params.move}`).join('\n');
-      const sys = 'Jestes rezyserem. Piszesz PO POLSKU. Dla kazdego ujecia napisz JEDEN konkretny, obrazowy moment akcji (co widac, co robi bohater) — 1 zdanie. Zwroc liste numerowana, dokladnie tyle pozycji ile podano, format "N. opis".';
-      const usr = `Film: ${pack.meta.title}. Logline: ${pack.story.logline}. Ton: ${a.tone || 'kinowy'}.${branches.length ? ` Wybrane zwroty akcji: ${branches.join('; ')}.` : ''}\nUjecia (beat + kamera):\n${list}\nNapisz osobny moment dla kazdego ujecia.`;
+      const usr = actionDirectorUser(pack, a.tone, listShots, storyProse, branches);
+      const sys = ACTION_DIRECTOR_SYS;
       const out = await askGemini(sys, usr, geminiKey, 4096);
       const map = {};
       out.split('\n').forEach((l) => { const m = l.match(/^\s*(\d+)[.\)]\s*(.+)/); if (m) map[parseInt(m[1], 10) - 1] = m[2].trim(); });
