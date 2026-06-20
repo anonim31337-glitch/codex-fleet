@@ -1,0 +1,13 @@
+{
+  "_schema": "world/v1",
+  "locations": [
+    { "id": "L1", "name": "Mostek", "description": "centrum dowodzenia, panoramiczne okno na Ziemię", "rules": "" },
+    { "id": "L2", "name": "Reaktor", "description": "rdzeń energetyczny, czerwone awaryjne światło", "rules": "wejscie tylko z kluczem reaktora" },
+    { "id": "L3", "name": "Sluza", "description": "śluza dokująca, pancerne wrota", "rules": "" }
+  ],
+  "worldRules": [
+    "Brak sztucznej grawitacji w sektorze reaktora.",
+    "Komunikacja z Ziemia ma 8 minut opoznienia."
+  ],
+  "_meta": { "updated": null }
+}

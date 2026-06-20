@@ -1,0 +1,7 @@
+test from node js
+SCENE_PROMPT :: cinematic shot, 85mm f/1.8 lens, RIM 3200K lighting, dolly in camera move, scored with SYNTHWAVE; anamorphic flare, 35mm film grain, high-contrast low-key, volumetric haze, seed 0x7F
+SCENE_PROMPT :: cinematic shot, 24mm f/4 lens, KEY 5600K lighting, pan r camera move, scored with DRONE PAD; anamorphic flare, 35mm film grain, high-contrast low-key, volumetric haze, seed 0xBE
+SCENE_PROMPT :: cinematic shot, 24mm f/4 lens, KEY 5600K lighting, pan r camera move, scored with DRONE PAD; anamorphic flare, 35mm film grain, high-contrast low-key, volumetric haze, seed 0xBE
+[ch01 S1] Mara (ta sama twarz/stroj/seed we wszystkich ujeciach); ARI (ten sam design drona, bez marek (IP)); Mara sama na mostku; budzi ja alarm reaktora.; 16:9, cinematic, hyper-real, sci-fi noir, kameralny, napięty
+[ch01 S2] Mara (ta sama twarz/stroj/seed we wszystkich ujeciach); ARI (ten sam design drona, bez marek (IP)); Schodzi do sluzy po klucz reaktora.; 16:9, cinematic, hyper-real, sci-fi noir, kameralny, napięty
+[ch01 S3] Mara (ta sama twarz/stroj/seed we wszystkich ujeciach); ARI (ten sam design drona, bez marek (IP)); Z dronem ARI wchodzi do reaktora — pierwsza wspolpraca.; 16:9, cinematic, hyper-real, sci-fi noir, kameralny, napięty

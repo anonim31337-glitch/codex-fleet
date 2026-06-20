@@ -1,0 +1,15 @@
+{
+  "_schema": "timeline-audit/v1",
+  "sceneOrder": ["s1", "s2", "s3"],
+  "events": [
+    { "id": "E1", "sceneId": "s1", "time": "08:00", "characterIds": ["C1"], "locationId": "L1", "summary": "Mara na mostku slyszy alarm." },
+    { "id": "E2", "sceneId": "s2", "time": "08:03", "characterIds": ["C1"], "locationId": "L3", "summary": "Mara w sluzie odbiera klucz reaktora." },
+    { "id": "E3", "sceneId": "s3", "time": "08:20", "characterIds": ["C1", "C2"], "locationId": "L2", "summary": "Mara i ARI w reaktorze." }
+  ],
+  "travelMatrix": {
+    "L1-L2": 5, "L2-L1": 5,
+    "L2-L3": 10, "L3-L2": 10,
+    "L1-L3": 12, "L3-L1": 12
+  },
+  "_meta": { "updated": null }
+}

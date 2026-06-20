@@ -1,0 +1,22 @@
+{
+  "_schema": "inventory/v1",
+  "items": [
+    {
+      "id": "IT1",
+      "name": "klucz reaktora",
+      "ownerId": "C1",
+      "acquiredAtSceneId": "s2",
+      "lostAtSceneId": null,
+      "usedAtSceneIds": ["s1", "s3"]
+    },
+    {
+      "id": "IT2",
+      "name": "latarka serwisowa",
+      "ownerId": "C1",
+      "acquiredAtSceneId": "s1",
+      "lostAtSceneId": null,
+      "usedAtSceneIds": ["s1", "s3"]
+    }
+  ],
+  "_meta": { "updated": null }
+}

@@ -1,0 +1,15 @@
+{
+  "_schema": "chapter/v1",
+  "id": "ch01",
+  "title": "Alarm",
+  "sceneIds": ["s1", "s2", "s3"],
+  "beats": [
+    "Mara sama na mostku; budzi ja alarm reaktora.",
+    "Schodzi do sluzy po klucz reaktora.",
+    "Z dronem ARI wchodzi do reaktora — pierwsza wspolpraca."
+  ],
+  "prose": "",
+  "status": "draft",
+  "wordCount": 0,
+  "_meta": { "updated": null }
+}

@@ -1,0 +1,78 @@
+{
+  "source": "narrative-engine",
+  "chapter": "ch01",
+  "title": "STACJA K-7 — Alarm",
+  "logline": "Samotna technik na umierającej stacji orbitalnej musi zaufać własnemu dronowi, by powstrzymać przeciążenie reaktora.",
+  "tone": "sci-fi noir, kameralny, napięty",
+  "wordCount": 0,
+  "elements": [
+    {
+      "id": "EL1",
+      "name": "Mara",
+      "type": "protagonista",
+      "refEN": "character reference sheet: Mara, 30, short hair, technician jumpsuit, neutral lighting, front + 3/4 + profile",
+      "lock": "ta sama twarz/stroj/seed we wszystkich ujeciach"
+    },
+    {
+      "id": "EL2",
+      "name": "ARI",
+      "type": "deuteragonista (dron)",
+      "refEN": "character reference: ARI",
+      "lock": "ten sam design drona, bez marek (IP)"
+    },
+    {
+      "id": "LOC1",
+      "name": "Mostek",
+      "type": "lokacja",
+      "refEN": "location reference: Mostek — centrum dowodzenia, panoramiczne okno na Ziemię",
+      "lock": "stala paleta i swiatlo"
+    },
+    {
+      "id": "LOC2",
+      "name": "Reaktor",
+      "type": "lokacja",
+      "refEN": "location reference: Reaktor — rdzeń energetyczny, czerwone awaryjne światło",
+      "lock": "stala paleta i swiatlo"
+    },
+    {
+      "id": "LOC3",
+      "name": "Sluza",
+      "type": "lokacja",
+      "refEN": "location reference: Sluza — śluza dokująca, pancerne wrota",
+      "lock": "stala paleta i swiatlo"
+    }
+  ],
+  "shots": [
+    {
+      "n": "S1",
+      "scene": "s1",
+      "shot": "Mara sama na mostku; budzi ja alarm reaktora.",
+      "geminiFrame": "Mara (ta sama twarz/stroj/seed we wszystkich ujeciach); ARI (ten sam design drona, bez marek (IP)); Mara sama na mostku; budzi ja alarm reaktora.; 16:9, cinematic, hyper-real, sci-fi noir, kameralny, napięty",
+      "lumaMotion": "powolny dolly-in, napiecie"
+    },
+    {
+      "n": "S2",
+      "scene": "s2",
+      "shot": "Schodzi do sluzy po klucz reaktora.",
+      "geminiFrame": "Mara (ta sama twarz/stroj/seed we wszystkich ujeciach); ARI (ten sam design drona, bez marek (IP)); Schodzi do sluzy po klucz reaktora.; 16:9, cinematic, hyper-real, sci-fi noir, kameralny, napięty",
+      "lumaMotion": "powolny dolly-in, napiecie"
+    },
+    {
+      "n": "S3",
+      "scene": "s3",
+      "shot": "Z dronem ARI wchodzi do reaktora — pierwsza wspolpraca.",
+      "geminiFrame": "Mara (ta sama twarz/stroj/seed we wszystkich ujeciach); ARI (ten sam design drona, bez marek (IP)); Z dronem ARI wchodzi do reaktora — pierwsza wspolpraca.; 16:9, cinematic, hyper-real, sci-fi noir, kameralny, napięty",
+      "lumaMotion": "powolny dolly-in, napiecie"
+    }
+  ],
+  "tasks": [
+    "Wygeneruj 1 arkusz referencyjny na element (Gemini).",
+    "Kadry per ujecie w Gemini (kolumna geminiFrame).",
+    "Kazdy kadr -> Luma: Start-Frame + komenda lumaMotion.",
+    "Score/muzyka wg tonu: sci-fi noir, kameralny, napięty."
+  ],
+  "economy": [
+    "Gemini kadry -> Luma tylko ruch (x3-4 taniej).",
+    "Trzymaj elementy stale (lock)."
+  ]
+}

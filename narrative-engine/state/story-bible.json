@@ -1,0 +1,15 @@
+{
+  "_schema": "story-bible/v1",
+  "title": "STACJA K-7",
+  "logline": "Samotna technik na umierającej stacji orbitalnej musi zaufać własnemu dronowi, by powstrzymać przeciążenie reaktora.",
+  "theme": "zaufanie wobec samotności",
+  "tone": "sci-fi noir, kameralny, napięty",
+  "genre": "sci-fi",
+  "targetLengthWords": 4000,
+  "acts": [
+    { "id": "I", "name": "Zawiazanie", "summary": "Poznajemy Marę i stację K-7; alarm reaktora." },
+    { "id": "II", "name": "Konfrontacja", "summary": "" },
+    { "id": "III", "name": "Kulminacja", "summary": "" }
+  ],
+  "_meta": { "updated": null }
+}

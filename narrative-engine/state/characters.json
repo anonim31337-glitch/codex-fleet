@@ -1,0 +1,26 @@
+{
+  "_schema": "characters/v1",
+  "characters": [
+    {
+      "id": "C1",
+      "name": "Mara",
+      "role": "protagonista",
+      "appearance": "30 lat, krótkie włosy, kombinezon technika, blizna na dłoni",
+      "wantNeed": "chce naprawić stację sama / potrzebuje nauczyć się ufać",
+      "arc": "od izolacji do współpracy z dronem",
+      "refPrompt": "character reference sheet: Mara, 30, short hair, technician jumpsuit, neutral lighting, front + 3/4 + profile",
+      "lock": "ta sama twarz/stroj/seed we wszystkich ujeciach"
+    },
+    {
+      "id": "C2",
+      "name": "ARI",
+      "role": "deuteragonista (dron)",
+      "appearance": "",
+      "wantNeed": "",
+      "arc": "",
+      "refPrompt": "",
+      "lock": "ten sam design drona, bez marek (IP)"
+    }
+  ],
+  "_meta": { "updated": null }
+}
