@@ -80,7 +80,11 @@ function buildMega(pk, story, lyrics, shots) {
   L.push('## 3. UJĘCIA (prompty do Gemini/Luma)');
   shots.forEach((s) => {
     L.push(`### ${s.n} · [${s.beat}] · ${s.cut}`);
-    if (s.aiDesc) L.push(`AKCJA: ${s.aiDesc}`);
+    const act = s.userAction && s.userAction !== ACTIONS[0] ? s.userAction : '';
+    if (act) L.push(`RUCH POSTACI: ${act}`);
+    if (s.userDialogue) L.push(`DIALOG: ${s.userDialogue}`);
+    if (s.sceneDesc) L.push(`SCENA: ${s.sceneDesc}`);
+    if (s.aiDesc) L.push(`AKCJA (AI): ${s.aiDesc}`);
     L.push(`PROMPT: ${shotFrame(s.params, pk.ctx)}`);
     L.push(`RUCH (Luma): ${s.lumaMotion}`);
     L.push('');
@@ -328,6 +332,7 @@ ${screenplay.slice(0, 6000)}`;
 
   // edycja kamery per ujęcie
   const updateShot = (idx, key, val) => setEditShots(prev => prev.map((s, i) => i === idx ? { ...s, params: { ...s.params, [key]: val } } : s));
+  const updateShotField = (idx, key, val) => setEditShots(prev => prev.map((s, i) => i === idx ? { ...s, [key]: val } : s));
   const removeShot = (idx) => setEditShots(prev => prev.filter((_, i) => i !== idx).map((s, i) => ({ ...s, n: 'S' + (i + 1) })));
   const addShot = () => setEditShots(prev => [...prev, {
     n: 'S' + (prev.length + 1), beat: '(dodane)', time: '—',
@@ -830,13 +835,38 @@ ${screenplay.slice(0, 6000)}`;
                     <span style={{ color: 'rgba(255,255,255,0.4)' }}>{s.time}</span>
                     {isLast && <span style={{ color: '#E8A33C' }}>🍸 martini shot</span>}
                     <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
-                      <button onClick={() => copyField((s.aiDesc ? 'AKCJA: ' + s.aiDesc + '\n' : '') + frame, 'shot' + idx)} style={{ ...btn(false), padding: '4px 9px', fontSize: '10px' }}>{copiedField === 'shot' + idx ? '✓ SKOPIOWANO' : 'KOPIUJ'}</button>
+                      <button onClick={() => {
+                          const parts = [];
+                          const act = s.userAction && s.userAction !== ACTIONS[0] ? s.userAction : '';
+                          if (act) parts.push('RUCH POSTACI: ' + act);
+                          if (s.userDialogue) parts.push('DIALOG: ' + s.userDialogue);
+                          if (s.sceneDesc) parts.push('SCENA: ' + s.sceneDesc);
+                          if (s.aiDesc) parts.push('AKCJA (AI): ' + s.aiDesc);
+                          parts.push(frame);
+                          copyField(parts.join('\n'), 'shot' + idx);
+                        }} style={{ ...btn(false), padding: '4px 9px', fontSize: '10px' }}>{copiedField === 'shot' + idx ? '✓ SKOPIOWANO' : 'KOPIUJ'}</button>
                       <button onClick={() => removeShot(idx)} title="usuń ujęcie" style={{ ...btn(false), padding: '4px 10px', fontSize: '12px', borderColor: '#E5484D', color: '#E5484D' }}>×</button>
                     </span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '7px' }}>
                     {sel('size', SHOT_SIZES)}{sel('lens', LENSES)}{sel('angle', ANGLES)}{sel('light', LIGHTS)}{sel('move', MOVES)}{sel('time', TIMES)}
                   </div>
+                  {/* Per-shot: ruch postaci + dialog + opis sceny */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Ruch postaci:</span>
+                    <select value={s.userAction || ACTIONS[0]} onChange={(e) => updateShotField(idx, 'userAction', e.target.value)}
+                      style={{ background: '#000', color: s.userAction && s.userAction !== ACTIONS[0] ? ACCENT : 'rgba(236,236,236,0.65)', border: '1px solid rgba(255,255,255,0.18)', fontFamily: MONO, fontSize: '11px', padding: '4px 6px', maxWidth: '250px' }}>
+                      {ACTIONS.map(ac => <option key={ac} value={ac}>{ac}</option>)}
+                    </select>
+                  </div>
+                  {s.userAction && s.userAction !== ACTIONS[0] && (
+                    <input style={{ ...input, fontSize: '11px', padding: '5px 8px', marginBottom: '6px' }}
+                      value={s.userDialogue || ''} onChange={(e) => updateShotField(idx, 'userDialogue', e.target.value)}
+                      placeholder="Co postać mówi? (opcjonalnie — tekst mówiony)" />
+                  )}
+                  <input style={{ ...input, fontSize: '11px', padding: '5px 8px', marginBottom: '6px', color: s.sceneDesc ? '#ECECEC' : 'rgba(255,255,255,0.35)' }}
+                    value={s.sceneDesc || ''} onChange={(e) => updateShotField(idx, 'sceneDesc', e.target.value)}
+                    placeholder="Co się dzieje w tej scenie? (opis dla scen bez postaci lub dodatkowy kontekst)" />
                   <div style={{ fontSize: '11px', color: ACCENT, marginBottom: '6px', lineHeight: 1.4 }}>🧑‍🏫 Po ludzku: {explainShot(s.params)}</div>
                   {s.aiDesc && <div style={{ fontSize: '12px', color: '#F4F4F2', background: 'rgba(40,224,123,0.08)', borderLeft: `2px solid ${ACCENT}`, padding: '6px 8px', marginBottom: '6px', lineHeight: 1.45 }}>🎬 AKCJA (AI): {s.aiDesc}</div>}
                   <div style={{ fontSize: '11.5px', color: 'rgba(236,236,236,0.72)', lineHeight: 1.45 }}>{frame}</div>
